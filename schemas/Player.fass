@@ -1,0 +1,10 @@
+include "./Vec3.fass"
+include "./Movement.fass"
+
+struct Player {
+    name: string
+    id: i32
+    pos: Vec3
+    movment: Movement
+    data: u8[5]
+}

@@ -1,0 +1,16 @@
+struct Movement {
+    moving: bool
+    speed: f32
+    direction: Direction
+}
+
+enum Direction {
+    n
+    ne
+    e
+    se
+    s
+    sw
+    w
+    nw
+}

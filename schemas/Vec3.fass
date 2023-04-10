@@ -1,0 +1,13 @@
+struct Vec3 {
+    quad: Quadrant
+    x: f32
+    y: f32
+    z: f32
+}
+
+enum Quadrant {
+    TL
+    TR
+    BL
+    BR
+}
