@@ -55,7 +55,6 @@ export class EnumDeclaration extends Declaration {
                         num += 3;
                     }
                 } else {
-                    console.log("Could not parse member")
                     break;
                 }
             }

@@ -31,12 +31,11 @@ export class Parser {
     if (!id) return null;
 
     this.currentProgramIndex = pos + 1;
-    if (this.currentProgram.offset > 0) this.currentProgram.offset = pos + 1;
+    if (pos) this.currentProgram.offset = pos + 1;
     else this.currentProgram.offset = pos;
 
     if (id == "struct") {
-      const initialOffset = this.currentProgram.offset;
-      const tokens = this.currentProgram.tokens.slice(initialOffset);
+      const tokens = this.currentProgram.tokens.slice(this.currentProgram.offset);
       const struct = StructDeclaration.parse(tokens);
       if (!struct) {
         console.error("Could not parse struct");
@@ -45,8 +44,7 @@ export class Parser {
       this.statements.push(struct);
       return struct;
     } else if (id == "enum") {
-      const initialOffset = this.currentProgram.offset + 1;
-      const tokens = this.currentProgram.tokens.slice(initialOffset);
+      const tokens = this.currentProgram.tokens.slice(this.currentProgram.offset);
       const struct = EnumDeclaration.parse(tokens);
       if (!struct) {
         console.error("Could not parse enum", tokens);

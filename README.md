@@ -1,30 +1,34 @@
-Fast ass serialization format
-See ./schemas for examples and ./src/type/Types.ts for types
-Will make this readme and spec later
+Fast ASS Serialization Format Specification
 
-- fASS will compile to basic load and stores
-- It will require zero-calculation when using `struct` type
-- `list` is dynamic-length struct. Similar to a classic `Map`
-- `arr` is a sequence of values
-- fASS will support code generation plugins
-- It will support multiple languages
+Schema format
 
-Currently, the parser can parse this
+FASS supports three structures.
+    1. Struct is the fastest and most compact data structure and cannot change in size (besides strings/dynamic arrays). The number of keys cannot change.
+    2. Enum is well... a enum.
+    3. List is like a map, but is similar in schema-syntax to a struct. It may have optional and required fields along with extra arbitrary fields appended to the bottom. This will be the slowest (still blazing fast though!)
+It also supports primitive types.
+    u8
+    i8
+    u16
+    i16
+    u32
+    i32
+    u64
+    i64
 
-```
-struct Vec3 {
-    quad: Quadrant
-    x: f32
-    y: f32
-    z: f32
-}
+    f32
+    f64
 
-enum Quadrant {
-    TL = 1
-    TR = 2
-    BL = 3
-    BR = 4
-}
-```
+    bool
+Also supports strings
+    str (Defaults to UTF-8)
+Also supports up to 246 user-defined types. That means that
+    - You can add support for 128 or greater integers with hi and low bits
+    - You may add any string encoding you like
+    - You can pass binary data through FASS with a type attached to it
 
-Imports coming soon when scopes are finalized and type resolution is done.
+FASS will compile to loads and stores (hopefully) utilizing SIMD for speedups with copying and other methods.
+FASS will rely on code generation in multiple languages. (AssemblyScript, Zig, Rust, C, Grain, and Whacko are planned)
+FASS will be fast
+
+That's all for now, folks!
