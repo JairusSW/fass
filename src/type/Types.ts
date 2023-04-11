@@ -11,9 +11,11 @@ export enum Types {
     f32 = 8,
     f64 = 9,
     bool = 10,
+    // Dynamic-length
+    string = 11,
     // Structure Types
-    enum = 11,
-    struct = 12,
-    list = 13,
+    enum = 12,
+    struct = 13,
+    list = 14,
     
 }
