@@ -27,6 +27,6 @@ export function getType(type: string): Types {
     case "string":
       return Types.string;
     default:
-      throw new Error("Invalid type");
+      return Types.struct;
   }
 }

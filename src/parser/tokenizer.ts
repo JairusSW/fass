@@ -1,5 +1,6 @@
 export const SEPARATORS = [
-    ":"
+    ":",
+    "}" // Quick and dirty
 ];
 export class Tokenizer {
     public pos: number = 0;
@@ -36,11 +37,15 @@ export class Tokenizer {
                 if (result.length) {
                     break;
                 } else {
-                    startPos = ++endPos;
+                    startPos++;
+                    endPos++;
+                    //startPos = ++endPos;
                 }
-            } else if (
+            }
+            if (
                 SEPARATORS.includes(this.text.charAt(endPos)) ||
-                this.text.charAt(endPos) == " "
+                this.text.charAt(endPos) == " " ||
+                this.text.charAt(endPos) == "\n"
             ) {
                 if (this.text.slice(startPos, endPos).trim().length)
                     result.push(this.text.slice(startPos, endPos));

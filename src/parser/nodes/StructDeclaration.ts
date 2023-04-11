@@ -43,6 +43,7 @@ export class StructDeclaration extends Declaration {
             // Validate last bracket
             if (tokens.at(num) != "}") {
                 console.log("Struct did not have closing brace");
+                console.log("slice:",tokens.slice(num) , num)
                // return null;
             }
             return decl;
