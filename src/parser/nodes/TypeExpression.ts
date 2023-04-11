@@ -17,17 +17,17 @@ const TYPES = [
     "f64"
 ]
 export class TypeExpression extends Expression {
-    public text: string;
-    public type: Types;
+    public text!: string;
+    public type!: Types;
     constructor(text?: string, type?: Types) {
         super();
         if (text) this.text = text!;
         if (type) this.type = type!;
     }
-    static validate(tokens: string[]): TypeExpression | null {
+    static validate(tokens: string[]): boolean {
         if (tokens.length && TYPES.includes(tokens.at(0)!)) {
-            return new TypeExpression(tokens.at(0), getType(tokens.at(0)!))
+            return true;
         }
-        return null;
+        return false;
     }
 }

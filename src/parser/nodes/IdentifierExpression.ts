@@ -16,8 +16,14 @@ const KEYWORDS = [
     "f32",
     "f64"
 ]
+
+const SYMBOLS = [
+    "{",
+    "}",
+    ":"
+]
 export class IdentifierExpression extends Expression {
-    public value: string;
+    public value!: string;
     public grammer: string[] = [
         "value=ID"
     ]
@@ -25,10 +31,10 @@ export class IdentifierExpression extends Expression {
         super();
         if (value) this.value = value!;
     }
-    static validate(tokens: string[]): IdentifierExpression | null {
-        if (tokens.length && !KEYWORDS.includes(tokens.at(0)!)) {
-            return new IdentifierExpression(tokens.at(0)!);
+    static validate(tokens: string[]): boolean {
+        if (tokens.length && !KEYWORDS.includes(tokens.at(0)!) && !SYMBOLS.includes(tokens.at(0)!)) {
+            return true;
         }
-        return null;
+        return false;
     }
 }

@@ -1,3 +1,6 @@
+import { MemberStatement } from "./nodes/MemberStatement";
+import { StructDeclaration } from "./nodes/StructDeclaration";
+
 export const SEPARATORS = [
     ":"
 ]
@@ -76,3 +79,17 @@ console.log(tk.getTokensUntilNewLine());
 console.log(tk.getTokensUntilNewLine());
 console.log(tk.getTokensUntilNewLine());
 console.log(tk.getTokensUntilNewLine());
+
+tk.pos = 0;
+
+console.log(MemberStatement.validate(["x", ":", "f32"]));
+
+console.log(MemberStatement.parse(["x", ":", "f32"]));
+
+console.log(JSON.stringify(StructDeclaration.parse([
+    'struct', 'Vec3', '{',
+    'x', ':', 'f32',
+    'y', ':', 'f32',
+    'z', ':', 'f32',
+    '}'
+]), null, 2));
