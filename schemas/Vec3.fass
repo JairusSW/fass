@@ -6,8 +6,8 @@ struct Vec3 {
 }
 
 enum Quadrant {
-    TL
-    TR
-    BL
-    BR
+    TL = 1
+    TR = 2
+    BL = 3
+    BR = 4
 }

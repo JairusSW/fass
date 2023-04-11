@@ -23,8 +23,10 @@ export class StructDeclaration extends Declaration {
             const decl = new StructDeclaration();
 
             // Parse name (IdentifierExpression)
-            if (!IdentifierExpression.validate([tokens.at(startPos + 1)!]))
+            if (!IdentifierExpression.validate([tokens.at(startPos + 1)!])) {
+                console.log("Could not find name")
                 return null;
+            }
             decl.name = new IdentifierExpression(tokens.at(startPos + 1)!);
 
             // Parse Members (MemberStatement)
@@ -39,7 +41,10 @@ export class StructDeclaration extends Declaration {
                 }
             }
             // Validate last bracket
-            if (tokens.at(num) != "}") return null;
+            if (tokens.at(num) != "}") {
+                console.log("Struct did not have closing brace");
+               // return null;
+            }
             return decl;
         }
         return null;

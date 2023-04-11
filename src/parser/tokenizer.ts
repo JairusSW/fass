@@ -1,6 +1,3 @@
-import { MemberStatement } from "./nodes/MemberStatement";
-import { StructDeclaration } from "./nodes/StructDeclaration";
-
 export const SEPARATORS = [
     ":"
 ];
@@ -36,7 +33,11 @@ export class Tokenizer {
         // Find next whitespace or EOF
         while (endPos < this.text.length) {
             if (this.text.charAt(endPos) == "\n") {
-                break;
+                if (result.length) {
+                    break;
+                } else {
+                    startPos = ++endPos;
+                }
             } else if (
                 SEPARATORS.includes(this.text.charAt(endPos)) ||
                 this.text.charAt(endPos) == " "

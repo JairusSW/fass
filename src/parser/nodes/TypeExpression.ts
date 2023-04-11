@@ -1,9 +1,7 @@
 import { Expression } from "./Expression";
 import { Types } from "../../type/Types";
 
-import { getType } from "../util/getType";
-
-const TYPES = [
+export const TYPES = [
   "string",
   "i8",
   "u8",
@@ -16,6 +14,21 @@ const TYPES = [
   "f32",
   "f64",
 ];
+
+const DEFAULTTYPES = [
+  "string",
+  "i8",
+  "u8",
+  "i16",
+  "u16",
+  "i32",
+  "u32",
+  "i64",
+  "u64",
+  "f32",
+  "f64",
+];
+
 export class TypeExpression extends Expression {
   public text!: string;
   public type!: Types;
@@ -28,6 +41,7 @@ export class TypeExpression extends Expression {
     if (tokens.length && TYPES.includes(tokens.at(0)!)) {
       return true;
     }
+    console.log("Could not validate type", TYPES);
     return false;
   }
 }
