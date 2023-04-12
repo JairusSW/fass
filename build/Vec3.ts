@@ -1,0 +1,13 @@
+export class Vec3 {
+    quad!: Quadrant
+    x!: f32
+    y!: f32
+    z!: f32
+}
+
+enum Quadrant {
+    TL = 1,
+    TR = 2, 
+    BL = 3,
+    BR = 4
+} 

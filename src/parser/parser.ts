@@ -85,7 +85,6 @@ export class ProgramData {
         tok == "enum" ||
         tok == "list"
       ) {
-        console.log(`Adding ${this.tokens.at(i + 1)!} to the scope!`)
         this.declaredTypes.push(this.tokens.at(i + 1)!);
       }
 
@@ -117,7 +116,5 @@ enum Quadrant {
 }`)
 
 const parser = new Parser([Vec3]);
-console.log(JSON.stringify(parser.parseOne(), null, 2));
-console.log(JSON.stringify(parser.parseOne(), null, 2));
-
-//console.log(EnumMemberStatement.parse(['TL', 'TR', 'BL', 'BR']))
+console.log(parser.parseOne());
+console.log(parser.parseOne());

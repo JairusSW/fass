@@ -24,7 +24,6 @@ export class StructDeclaration extends Declaration {
 
             // Parse name (IdentifierExpression)
             if (!IdentifierExpression.validate([tokens.at(startPos + 1)!])) {
-                console.log("Could not find name")
                 return null;
             }
             decl.name = new IdentifierExpression(tokens.at(startPos + 1)!);
@@ -42,8 +41,6 @@ export class StructDeclaration extends Declaration {
             }
             // Validate last bracket
             if (tokens.at(num) != "}") {
-                console.log("Struct did not have closing brace");
-                console.log("slice:",tokens.slice(num) , num)
                // return null;
             }
             return decl;

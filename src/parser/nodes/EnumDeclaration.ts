@@ -24,7 +24,6 @@ export class EnumDeclaration extends Declaration {
 
             // Parse name (IdentifierExpression)
             if (!IdentifierExpression.validate([tokens.at(startPos + 1)!])) {
-                console.log("Could not get name of enum");
                 return null;
             }
             decl.name = new IdentifierExpression(tokens.at(startPos + 1)!);
@@ -33,11 +32,9 @@ export class EnumDeclaration extends Declaration {
             let num = 3;
             let index = 0;
             const takenIndexes: number[] = [];
-            console.log(tokens.slice(startPos + num))
             while (true) {
                 const member = EnumMemberStatement.parse(tokens.slice(startPos + num));
                 if (member) {
-                    console.log(member)
                     decl.members.push(member);
                     if (member.value.value == "NOT_ASSIGNED") {
                         while (takenIndexes.includes(index)) index++;

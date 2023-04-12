@@ -7,6 +7,24 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.11.tgz#b3b790f09cb1696cffcec605de025b088fa4225f"
   integrity sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==
 
+assemblyscript@^0.27.2:
+  version "0.27.2"
+  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.27.2.tgz#cf723d1218fbe3f6b7801ac56e4197fb7d363489"
+  integrity sha512-uTiUFkiXkVpsY3votMjmPuA9vvL/vHuUrtH+VtVKCl+BM+1OqXFO7j53FYA4L9QtVJA9KQDYXSVnZ5LFad668w==
+  dependencies:
+    binaryen "112.0.0-nightly.20230411"
+    long "^5.2.1"
+
+binaryen@112.0.0-nightly.20230411:
+  version "112.0.0-nightly.20230411"
+  resolved "https://registry.yarnpkg.com/binaryen/-/binaryen-112.0.0-nightly.20230411.tgz#2f85cff68c0fe3e89014d2dd4e933c4e7e313ef1"
+  integrity sha512-4V9r9x9fjAVFZdR2yvBFc3BEJJIBYvd2X8X8k0zAuJsao2gl9wNHDmpQ30QsLo6hgkRfRImkCbCjhXW3RDOYXQ==
+
+long@^5.2.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/long/-/long-5.2.1.tgz#e27595d0083d103d2fa2c20c7699f8e0c92b897f"
+  integrity sha512-GKSNGeNAtw8IryjjkhZxuKB3JzlcLTwjtiQCHKvqQet81I93kXslhDQruGI/QsddO83mcDToBVy7GqGS/zYf/A==
+
 prettier@^2.8.7:
   version "2.8.7"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.7.tgz#bb79fc8729308549d28fe3a98fce73d2c0656450"

@@ -41,7 +41,6 @@ export class TypeExpression extends Expression {
     if (tokens.length && TYPES.includes(tokens.at(0)!)) {
       return true;
     }
-    console.log("Could not validate type", TYPES);
     return false;
   }
 }
