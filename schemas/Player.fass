@@ -5,6 +5,6 @@ struct Player {
     name: char[8]
     id: i32
     pos: Vec3
-    movment: Movement
+    movement: Movement
     data: u8[5]
 }
