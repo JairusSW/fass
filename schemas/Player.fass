@@ -2,7 +2,7 @@ include "./Vec3.fass"
 include "./Movement.fass"
 
 struct Player {
-    name: string
+    name: char[8]
     id: i32
     pos: Vec3
     movment: Movement
