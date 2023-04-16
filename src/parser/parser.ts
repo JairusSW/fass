@@ -1,7 +1,6 @@
 import { Statement } from "./nodes/Statement";
 import { StructDeclaration } from "./nodes/StructDeclaration";
 import { EnumDeclaration } from "./nodes/EnumDeclaration";
-import { EnumMemberStatement } from "./nodes/EnumMemberStatement";
 import { Tokenizer } from "./tokenizer";
 import { TYPES } from "./nodes/TypeExpression";
 
@@ -15,7 +14,7 @@ export class Parser {
     this.programs = files;
     this.currentProgram = files.at(0)!;
   }
-  
+
   parseOne(): Statement | null {
     let pos = 0;
     const id = this.currentProgram.tokens.slice(this.currentProgramIndex).find((v, i) => {

@@ -5,12 +5,7 @@ struct Movement {
 }
 
 enum Direction {
-    n
-    ne
-    e
-    se
-    s
-    sw
-    w
-    nw
+    pitch: f32
+    yaw: f32
+    facing: f32
 }

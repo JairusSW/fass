@@ -6,12 +6,10 @@ export class Vec3 {
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
         // Vec3 -> [1, 1.0, 2.0, 3.0]
         store<u8>(changetype<usize>(output), input.quad);
-        // Combine x and y into one 64-bit store
-        store<u64>(changetype<usize>(output) + <usize>1, load<u64>(changetype<usize>(input) + <usize>1));
-        //store<f32>(changetype<usize>(output) + <usize>2, input.y);
+        store<f32>(changetype<usize>(output) + <usize>2, input.y);
         store<f32>(changetype<usize>(output) + <usize>3, input.z);
     }
-    @inline __FASS_DESERIALIZE(input: ArrayBuffer, output:  Vec3): void {
+    @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Vec3): void {
         // [1, 1.0, 2.0, 3.0] -> Vec3
         output.quad = load<u8>(changetype<usize>(input));
         output.x = load<f32>(changetype<usize>(input) + <usize>1);
