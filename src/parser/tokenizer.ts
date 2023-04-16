@@ -32,32 +32,29 @@ export class Tokenizer {
     }
 
     private getNextToken(): { value: string, index: number } | undefined {
-        const text = this.text.slice(this.currentTokenIndex);
-        const len = text.length;
+        const len = this.text.length;
         let value = "";
         let index = -1;
-        let i = 0;
 
-        while (i < len) {
-            const c = text[i];
+        for (let i = this.currentTokenIndex; i < len; i++) {
+            const c = this.text[i];
             if (c === " " || c === "\n") {
-                i++;
                 continue;
             } else if (c === ":") {
                 value = ":";
-                index = this.currentTokenIndex + i;
+                index = i;
                 break;
             } else {
                 let start = i;
                 while (i < len) {
-                    const cc = text[i];
+                    const cc = this.text[i];
                     if (cc === " " || cc === "\n" || cc === ":") {
                         break;
                     }
                     i++;
                 }
-                value = text.slice(start, i);
-                index = this.currentTokenIndex + start;
+                value = this.text.substring(start, i);
+                index = start;
                 break;
             }
         }
@@ -69,7 +66,6 @@ export class Tokenizer {
         this.currentTokenIndex = index + value.length;
         return { value, index };
     }
-
 }
 
 const tokenizer = new Tokenizer(`include "./Vec3.fass"
