@@ -1,74 +1,56 @@
 export class Tokenizer {
     private text: string;
-    private currentTokenIndex: number = 0;
+    public currentToken: {
+        value: string,
+        index: number
+    } | undefined = undefined;
+    public currentTokenIndex: number = 0;
 
     constructor(text: string) {
         this.text = text;
     }
 
     getToken(): string | undefined {
-        const token = this.getNextToken();
-        return token ? token.value : undefined;
+        this.currentToken = this.getNextToken();
+        return this.currentToken ? this.currentToken.value : undefined;
     }
 
     getTokensUntil(splitter: string): string[] {
         const tokens: string[] = [];
-        let token = this.getNextToken();
-        while (token && token.value !== splitter) {
-            tokens.push(token.value);
-            token = this.getNextToken();
+        this.currentToken = this.getNextToken();
+        while (this.currentToken && this.currentToken.value !== splitter) {
+            tokens.push(this.currentToken.value);
+            this.currentToken = this.getNextToken();
         }
         return tokens;
     }
 
     getAllTokens(): string[] {
         const tokens: string[] = [];
-        let token = this.getNextToken();
-        while (token) {
-            tokens.push(token.value);
-            token = this.getNextToken();
+        this.currentToken = this.getNextToken();
+        while (this.currentToken) {
+            tokens.push(this.currentToken.value);
+            this.currentToken = this.getNextToken();
         }
         return tokens;
     }
 
     private getNextToken(): { value: string, index: number } | undefined {
-        const len = this.text.length;
-        let value = "";
-        let index = -1;
 
-        for (let i = this.currentTokenIndex; i < len; i++) {
-            const c = this.text[i];
-            if (c === " " || c === "\n") {
-                continue;
-            } else if (c === ":") {
-                value = ":";
-                index = i;
-                break;
-            } else {
-                let start = i;
-                while (i < len) {
-                    const cc = this.text[i];
-                    if (cc === " " || cc === "\n" || cc === ":") {
-                        break;
-                    }
-                    i++;
-                }
-                value = this.text.substring(start, i);
-                index = start;
-                break;
-            }
+        let text = this.text.slice(this.currentTokenIndex);
+        const tokenRegExp = /[^\n\s:]+|:/g;
+        const match = tokenRegExp.exec(text);
+        if (match) {
+            const value = match[0];
+            let index = match.index + this.currentTokenIndex;
+            this.currentTokenIndex = index + value.length;
+            return { value, index };
         }
-
-        if (value === "") {
-            return undefined;
-        }
-
-        this.currentTokenIndex = index + value.length;
-        return { value, index };
+        return undefined;
     }
 }
 
-const tokenizer = new Tokenizer(`include "./Vec3.fass"
+/*const tokenizer = new Tokenizer(`include "./Vec3.fass"
 include "./Movement.fass"
 
 struct Player {
@@ -79,4 +61,4 @@ struct Player {
     data: u8[5]
 }`);
 
-console.log(tokenizer.getAllTokens());
+console.log(tokenizer.getAllTokens());*/

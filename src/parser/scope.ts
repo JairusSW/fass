@@ -1,7 +1,7 @@
 import { Statement } from "./nodes/Statement";
 
 export class Scope {
-    public elements: ScopeElement[];
+    public elements: ScopeElement[] = [];
     constructor() { }
     addElement(element: ScopeElement) {
         this.elements.push(element);
@@ -27,4 +27,8 @@ export class Scope {
 export class ScopeElement {
     public name!: string;
     public node!: Statement;
+    constructor(name: string, node: Statement) {
+        this.name = name;
+        this.node = node;
+    }
 }

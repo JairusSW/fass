@@ -37,10 +37,4 @@ export class TypeExpression extends Expression {
     if (text) this.text = text!;
     if (type) this.type = type!;
   }
-  static validate(tokens: string[]): boolean {
-    if (tokens.length && TYPES.includes(tokens.at(0)!)) {
-      return true;
-    }
-    return false;
-  }
 }
