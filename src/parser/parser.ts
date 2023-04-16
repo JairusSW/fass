@@ -47,7 +47,8 @@ export class Parser {
 
     
   }
-  parseIncludeDeclaration(tokenizer: Tokenizer): IncludeDeclaration | undefined {
+  parseIncludeDeclaration(source: Source): IncludeDeclaration | undefined {
+    const tokenizer = source.tokenizer;
     if (tokenizer.currentToken?.value != "includes") throw new Error("Could not parse IncludeDeclaration because it starts with the token " + tokenizer.currentToken?.value + ". Expected \"includes\".");
     const includeDecl = new IncludeDeclaration();
     let currentToken: string | undefined = "";
@@ -61,12 +62,14 @@ export class Parser {
       });
       // Find Exported members
       // Add to IncludeDeclaration.prototype.included
+      source.stmts.push(includeDecl);
       return includeDecl;
     }
     throw new Error("Expected path to included file, but found " + currentToken + " instead.");
       // Instead of throwing everywhere, keep going until a token starter is recognised and warn on invalid content.
   }
-  parseStructDeclaration(tokenizer: Tokenizer): StructDeclaration | undefined {
+  parseStructDeclaration(source: Source): StructDeclaration | undefined {
+    const tokenizer = source.tokenizer;
     if (tokenizer.currentToken?.value != "struct") throw new Error("Could not parse StructDeclaration because it starts with the token " + tokenizer.currentToken?.value + ". Expected \"struct\".");
     const structDecl = new StructDeclaration();
     let currentToken: string | undefined = "";
@@ -104,10 +107,12 @@ export class Parser {
     }
 
     // Add to scope
-    this.sources[this.currentSourceIndex].scope.addElement(new ScopeElement(structDecl.name.value, structDecl));
+    source.scope.addElement(new ScopeElement(structDecl.name.value, structDecl));
+    source.stmts.push(structDecl);
     return structDecl;
   }
-  parseEnumDeclaration(tokenizer: Tokenizer): EnumDeclaration | undefined {
+  parseEnumDeclaration(source: Source): EnumDeclaration | undefined {
+    const tokenizer = source.tokenizer;
     if (tokenizer.currentToken?.value != "enum") throw new Error("Could not parse EnumDeclaration because it starts with the token " + tokenizer.currentToken?.value + ". Expected \"enum\".");
     const enumDecl = new EnumDeclaration();
     let currentToken: string | undefined = "";
@@ -147,7 +152,8 @@ export class Parser {
       currentToken = tokenizer.getToken();
     }
     // Add to scope
-    this.sources[this.currentSourceIndex].scope.addElement(new ScopeElement(enumDecl.name.value, enumDecl));
+    source.scope.addElement(new ScopeElement(enumDecl.name.value, enumDecl));
+    source.stmts.push(enumDecl);
     return enumDecl;
   }
 }
