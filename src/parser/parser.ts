@@ -53,7 +53,7 @@ export class Parser {
     while (true) {
       currentToken = tokenizer.seeToken();
       if (currentToken == "include") {
-        stmts.push(this.parseIncludeDeclaration(source)!);
+        stmts.push(this.parseIncludeDeclaration(source).included);
       } else if (currentToken == "struct") {
         stmts.push(this.parseStructDeclaration(source)!);
       } else if (currentToken == "enum") {
@@ -74,6 +74,7 @@ export class Parser {
 
     currentToken = tokenizer.getToken();
     if (!currentToken) throw new Error("Failed to identify token or reached End Of File at \ntoken: " + currentToken + "\npos: " + tokenizer.currentTokenIndex);
+    includeDecl.predicate = currentToken;
     if (isStringLiteral(currentToken!)) {
       const newSource = this.sources.find((value, index) => {
         if (value.name == currentToken?.slice(1, currentToken.length - 1)) {
@@ -84,6 +85,7 @@ export class Parser {
       // Find Exported members
       // Add to IncludeDeclaration.prototype.included
       const parsed = this.parseSource(newSource!);
+      source.stmts = [...parsed, ...source.stmts];
       // Remove include declaration and replace with the included stuff.
       // Make sure to specify between structs with the same names, but in different files to avoid conflicts.
 
