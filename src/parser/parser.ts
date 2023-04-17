@@ -1,15 +1,17 @@
-import { Tokenizer } from "./tokenizer";
-import { TYPES, TypeExpression } from "./nodes/TypeExpression";
+import { TypeExpression } from "./nodes/TypeExpression";
 import { Source } from "./source";
 import { Statement } from "./nodes/Statement";
 
-import { IncludeDeclaration } from "./nodes/IncludeDeclaration";
-import { StructDeclaration } from "./nodes/StructDeclaration";
-import { EnumDeclaration } from "./nodes/EnumDeclaration";
-import { IdentifierExpression } from "./nodes/IdentifierExpression";
-import { MemberStatement } from "./nodes/MemberStatement";
-import { EnumMemberStatement } from "./nodes/EnumMemberStatement";
-import { IntegerLiteral } from "./nodes/IntegerLiteral";
+import {
+  IncludeDeclaration,
+  StructDeclaration,
+  EnumDeclaration,
+  IdentifierExpression,
+  MemberStatement,
+  EnumMemberStatement,
+  IntegerLiteral
+} from "./nodes";
+
 import { ScopeElement } from "./scope";
 
 const KEYWORDS = [
@@ -36,9 +38,10 @@ export class Parser {
   constructor(sources: Source[]) {
     this.sources = sources;
   }
-  // This pretty much creates a Scope and parses each valid statement.
+
   parseSource(source: Source): Statement[] {
     const stmts: Statement[] = [];
+
     this.sources.find((value, index) => {
       if (value.name == source.name) {
         this.currentSourceIndex = index;
@@ -46,24 +49,29 @@ export class Parser {
       }
     });
 
-    // Parse each declaration
     const tokenizer = source.tokenizer;
-    
+
     let currentToken: string | null = "";
     while (true) {
       currentToken = tokenizer.seeToken();
+
+      // If the token is "include", parse the included file
       if (currentToken == "include") {
         stmts.push(this.parseIncludeDeclaration(source).included);
       } else if (currentToken == "struct") {
+        // If the token is "struct", parse the struct declaration
         stmts.push(this.parseStructDeclaration(source)!);
       } else if (currentToken == "enum") {
+        // If the token is "enum", parse the enum declaration
         stmts.push(this.parseEnumDeclaration(source)!);
       } else {
+        // If the token is not "include", "struct", or "enum", break the loop
         break;
       }
     }
     return stmts;
   }
+
   parseIncludeDeclaration(source: Source): IncludeDeclaration {
     const tokenizer = source.tokenizer;
     const includeDecl = new IncludeDeclaration();
@@ -72,33 +80,42 @@ export class Parser {
     currentToken = tokenizer.getToken();
     if (currentToken != "include") throw new Error("Could not parse IncludesDeclaration because it starts with the token " + currentToken + ". Expected \"include\".");
 
+    // Get the path to the included file
     currentToken = tokenizer.getToken();
     if (!currentToken) throw new Error("Failed to identify token or reached End Of File at \ntoken: " + currentToken + "\npos: " + tokenizer.currentTokenIndex);
+
+    // Set the predicate of the IncludeDeclaration to the path
     includeDecl.predicate = currentToken;
+
     if (isStringLiteral(currentToken!)) {
       const newSource = this.sources.find((value, index) => {
         if (value.name == currentToken?.slice(1, currentToken.length - 1)) {
           return value;
         }
       });
+
       if (!newSource) throw new Error("Could not find source that was specified in the includes declaration");
-      // Find Exported members
-      // Add to IncludeDeclaration.prototype.included
+
+      // Parse the included file and add the exported members to the source's statements
       const parsed = this.parseSource(newSource!);
       source.stmts = [...parsed, ...source.stmts];
-      // Remove include declaration and replace with the included stuff.
-      // Make sure to specify between structs with the same names, but in different files to avoid conflicts.
-
+      
       includeDecl.included = parsed;
+
       return includeDecl;
     }
+
     throw new Error("Expected path to included file, but found " + currentToken + " instead.");
     // Instead of throwing everywhere, keep going until a token starter is recognised and warn on invalid content.
   }
+
+  // This function parses a struct declaration
   parseStructDeclaration(source: Source): StructDeclaration {
     const tokenizer = source.tokenizer;
     const structDecl = new StructDeclaration();
     let currentToken: string | null = "";
+
+    // Get the "struct" keyword
     currentToken = tokenizer.getToken();
     if (currentToken != "struct") throw new Error("Could not parse StructDeclaration because it starts with the token " + currentToken + ". Expected \"struct\".");
     currentToken = tokenizer.getToken();
