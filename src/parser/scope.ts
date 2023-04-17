@@ -17,10 +17,10 @@ export class Scope {
                     return value;
                 };
             });
-            if (elementPosition === -1) return undefined;
+            if (elementPosition === -1) return null;
             return this.elements[elementPosition];
         }
-        return undefined;
+        return null;
     }
 }
 

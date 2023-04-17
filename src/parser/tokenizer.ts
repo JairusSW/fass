@@ -3,16 +3,23 @@ export class Tokenizer {
     public currentToken: {
         value: string,
         index: number
-    } | undefined = undefined;
+    } | null = null;
     public currentTokenIndex: number = 0;
 
     constructor(text: string) {
         this.text = text;
     }
 
-    getToken(): string | undefined {
+    getToken(): string | null {
         this.currentToken = this.getNextToken();
-        return this.currentToken ? this.currentToken.value : undefined;
+        return this.currentToken ? this.currentToken.value : null;
+    }
+
+    seeToken(): string | null {
+        const pos = this.currentTokenIndex;
+        const currentToken = this.getNextToken();
+        this.currentTokenIndex = pos;
+        return currentToken ? currentToken.value : null;
     }
 
     getTokensUntil(splitter: string): string[] {
@@ -35,7 +42,7 @@ export class Tokenizer {
         return tokens;
     }
 
-    private getNextToken(): { value: string, index: number } | undefined {
+    private getNextToken(): { value: string, index: number } | null {
 
         let text = this.text.slice(this.currentTokenIndex);
         const tokenRegExp = /[^\n\s:]+|:/g;
@@ -46,19 +53,20 @@ export class Tokenizer {
             this.currentTokenIndex = index + value.length;
             return { value, index };
         }
-        return undefined;
+        return null;
     }
 }
 
-/*const tokenizer = new Tokenizer(`include "./Vec3.fass"
-include "./Movement.fass"
+const tokenizer = new Tokenizer(`struct Vec3 {
+    quad: Quadrant
+    x: f32
+    y: f32
+    z: f32
+}
 
-struct Player {
-    name: char[8]
-    id: i32
-    pos: Vec3
-    movement: Movement
-    data: u8[5]
+enum Quadrant {
+    TL = 1
+    TR = 2
+    BL = 3
+    BR = 4
 }`);
-
-console.log(tokenizer.getAllTokens());*/

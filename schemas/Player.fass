@@ -1,5 +1,5 @@
-include "./Vec3.fass"
-include "./Movement.fass"
+include "Vec3.fass"
+include "Movement.fass"
 
 struct Player {
     name: char[8]
