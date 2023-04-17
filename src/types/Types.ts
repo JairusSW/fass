@@ -1,5 +1,5 @@
 export enum Types {
-  // Primitive 0-10
+  // Primitive 0-11
   u8 = 0,
   i8 = 1,
   u16 = 2,
@@ -11,10 +11,12 @@ export enum Types {
   f32 = 8,
   f64 = 9,
   bool = 10,
-  // Dynamic-length
-  string = 11,
+  char = 11,
   // Structure Types
   enum = 12,
   struct = 13,
   list = 14,
+  sequence = 15,
+  // Dynamic length
+  array = 16
 }

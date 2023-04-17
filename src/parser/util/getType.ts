@@ -1,4 +1,4 @@
-import { Types } from "../../type/Types";
+import { Types } from "../../types/Types";
 
 export function getType(type: string): Types {
   switch (type) {

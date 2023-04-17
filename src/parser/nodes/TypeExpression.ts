@@ -1,5 +1,5 @@
 import { Expression } from "./Expression";
-import { Types } from "../../type/Types";
+import { Types } from "../../types/Types";
 
 export const TYPES = [
   "string",
