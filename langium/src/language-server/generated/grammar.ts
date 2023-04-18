@@ -38,11 +38,30 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
       "$type": "ParserRule",
       "name": "Declaration",
       "definition": {
-        "$type": "RuleCall",
-        "rule": {
-          "$ref": "#/rules@2"
-        },
-        "arguments": []
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@2"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@4"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@6"
+            },
+            "arguments": []
+          }
+        ]
       },
       "definesHiddenTokens": false,
       "entry": false,
@@ -74,6 +93,10 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
             }
           },
           {
+            "$type": "Keyword",
+            "value": "{"
+          },
+          {
             "$type": "Assignment",
             "feature": "members",
             "operator": "+=",
@@ -84,7 +107,11 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
               },
               "arguments": []
             },
-            "cardinality": "?"
+            "cardinality": "*"
+          },
+          {
+            "$type": "Keyword",
+            "value": "}"
           }
         ]
       },
@@ -161,6 +188,10 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
             }
           },
           {
+            "$type": "Keyword",
+            "value": "{"
+          },
+          {
             "$type": "Assignment",
             "feature": "members",
             "operator": "+=",
@@ -172,6 +203,10 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
               "arguments": []
             },
             "cardinality": "?"
+          },
+          {
+            "$type": "Keyword",
+            "value": "}"
           }
         ]
       },
@@ -217,7 +252,8 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
                     "$ref": "#/rules@7"
                   },
                   "arguments": []
-                }
+                },
+                "cardinality": "*"
               }
             ],
             "cardinality": "?"
@@ -272,7 +308,7 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@12"
+            "$ref": "#/rules@13"
           },
           "arguments": []
         }
@@ -350,6 +386,20 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
     },
     {
       "$type": "TerminalRule",
+      "name": "FLOAT",
+      "type": {
+        "$type": "ReturnType",
+        "name": "number"
+      },
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "[0-9]+\\\\.[0-9]*"
+      },
+      "fragment": false,
+      "hidden": false
+    },
+    {
+      "$type": "TerminalRule",
       "name": "INT",
       "type": {
         "$type": "ReturnType",
@@ -367,7 +417,7 @@ export const FassGrammar = (): Grammar => loadedFassGrammar ?? (loadedFassGramma
       "name": "STRING",
       "definition": {
         "$type": "RegexToken",
-        "regex": "\\"(\\\\\\\\.|[^\\"\\\\\\\\])*\\"|'(\\\\\\\\.|[^'\\\\\\\\])*'"
+        "regex": "\\"[^\\"]*\\"|'[^']*'"
       },
       "fragment": false,
       "hidden": false

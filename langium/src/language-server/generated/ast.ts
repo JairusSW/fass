@@ -6,7 +6,7 @@
 /* eslint-disable */
 import { AstNode, AbstractAstReflection, ReferenceInfo, TypeMetaData } from 'langium';
 
-export type Declaration = StructDeclaration;
+export type Declaration = EnumDeclaration | IncludeDeclaration | StructDeclaration;
 
 export const Declaration = 'Declaration';
 
@@ -15,6 +15,7 @@ export function isDeclaration(item: unknown): item is Declaration {
 }
 
 export interface EnumDeclaration extends AstNode {
+    readonly $container: Program;
     readonly $type: 'EnumDeclaration';
     members: Array<EnumMemberStatement>
     name: IdentifierExpression
@@ -52,6 +53,7 @@ export function isIdentifierExpression(item: unknown): item is IdentifierExpress
 }
 
 export interface IncludeDeclaration extends AstNode {
+    readonly $container: Program;
     readonly $type: 'IncludeDeclaration';
     predicate: string
 }
@@ -144,6 +146,8 @@ export class FassAstReflection extends AbstractAstReflection {
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
+            case EnumDeclaration:
+            case IncludeDeclaration:
             case StructDeclaration: {
                 return this.isSubtype(Declaration, supertype);
             }

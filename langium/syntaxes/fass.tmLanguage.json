@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.fass",
-      "match": "\\b(struct)\\b"
+      "match": "\\b(enum|include|struct)\\b"
     },
     {
       "name": "string.quoted.double.fass",
