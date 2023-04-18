@@ -1,0 +1,12 @@
+{
+    "projectName": "Fass",
+    "languages": [{
+        "id": "fass",
+        "grammar": "src/language-server/fass.langium",
+        "fileExtensions": [".fass"],
+        "textMate": {
+            "out": "syntaxes/fass.tmLanguage.json"
+        }
+    }],
+    "out": "src/language-server/generated"
+}
