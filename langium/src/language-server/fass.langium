@@ -1,13 +1,34 @@
 grammar Fass
 
-entry Model:
-    (persons+=Person | greetings+=Greeting)*;
+entry Program:
+    (declarations+=Declaration)*;
 
-Person:
-    'person' name=ID;
+Declaration:
+    StructDeclaration;
 
-Greeting:
-    'Hello' person=[Person:ID] '!';
+StructDeclaration:
+    "struct" name=IdentifierExpression (members+=MemberStatement*)?;
+
+MemberStatement:
+    name=IdentifierExpression ":" type=TypeExpression;
+
+EnumDeclaration:
+    "enum" name=IdentifierExpression (members+=EnumMemberStatement*)?;
+
+EnumMemberStatement:
+    name=IdentifierExpression ("=" value=IntegerLiteral)?;
+
+IncludeDeclaration:
+    "include" predicate=ID;
+
+IntegerLiteral:
+    value=INT;
+
+TypeExpression:
+    text=ID;
+
+IdentifierExpression: 
+    value=ID;
 
 hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;

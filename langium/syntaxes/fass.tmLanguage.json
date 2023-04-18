@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.fass",
-      "match": "\\b(Hello|person)\\b"
+      "match": "\\b(struct)\\b"
     },
     {
       "name": "string.quoted.double.fass",

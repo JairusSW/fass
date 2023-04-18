@@ -1,10 +1,10 @@
-import fs from 'fs';
+/*import fs from 'fs';
 import { CompositeGeneratorNode, NL, toString } from 'langium';
 import path from 'path';
-import { Model } from '../language-server/generated/ast';
+import { Program } from '../language-server/generated/ast';
 import { extractDestinationAndName } from './cli-util';
 
-export function generateJavaScript(model: Model, filePath: string, destination: string | undefined): string {
+export function generateJavaScript(model: Program, filePath: string, destination: string | undefined): string {
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.js`;
 
@@ -18,3 +18,4 @@ export function generateJavaScript(model: Model, filePath: string, destination: 
     fs.writeFileSync(generatedFilePath, toString(fileNode));
     return generatedFilePath;
 }
+*/

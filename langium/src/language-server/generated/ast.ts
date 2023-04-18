@@ -4,58 +4,149 @@
  ******************************************************************************/
 
 /* eslint-disable */
-import { AstNode, AbstractAstReflection, Reference, ReferenceInfo, TypeMetaData } from 'langium';
+import { AstNode, AbstractAstReflection, ReferenceInfo, TypeMetaData } from 'langium';
 
-export interface Greeting extends AstNode {
-    readonly $container: Model;
-    readonly $type: 'Greeting';
-    person: Reference<Person>
+export type Declaration = StructDeclaration;
+
+export const Declaration = 'Declaration';
+
+export function isDeclaration(item: unknown): item is Declaration {
+    return reflection.isInstance(item, Declaration);
 }
 
-export const Greeting = 'Greeting';
-
-export function isGreeting(item: unknown): item is Greeting {
-    return reflection.isInstance(item, Greeting);
+export interface EnumDeclaration extends AstNode {
+    readonly $type: 'EnumDeclaration';
+    members: Array<EnumMemberStatement>
+    name: IdentifierExpression
 }
 
-export interface Model extends AstNode {
-    readonly $type: 'Model';
-    greetings: Array<Greeting>
-    persons: Array<Person>
+export const EnumDeclaration = 'EnumDeclaration';
+
+export function isEnumDeclaration(item: unknown): item is EnumDeclaration {
+    return reflection.isInstance(item, EnumDeclaration);
 }
 
-export const Model = 'Model';
-
-export function isModel(item: unknown): item is Model {
-    return reflection.isInstance(item, Model);
+export interface EnumMemberStatement extends AstNode {
+    readonly $container: EnumDeclaration;
+    readonly $type: 'EnumMemberStatement';
+    name: IdentifierExpression
+    value?: IntegerLiteral
 }
 
-export interface Person extends AstNode {
-    readonly $container: Model;
-    readonly $type: 'Person';
-    name: string
+export const EnumMemberStatement = 'EnumMemberStatement';
+
+export function isEnumMemberStatement(item: unknown): item is EnumMemberStatement {
+    return reflection.isInstance(item, EnumMemberStatement);
 }
 
-export const Person = 'Person';
+export interface IdentifierExpression extends AstNode {
+    readonly $container: EnumDeclaration | EnumMemberStatement | MemberStatement | StructDeclaration;
+    readonly $type: 'IdentifierExpression';
+    value: string
+}
 
-export function isPerson(item: unknown): item is Person {
-    return reflection.isInstance(item, Person);
+export const IdentifierExpression = 'IdentifierExpression';
+
+export function isIdentifierExpression(item: unknown): item is IdentifierExpression {
+    return reflection.isInstance(item, IdentifierExpression);
+}
+
+export interface IncludeDeclaration extends AstNode {
+    readonly $type: 'IncludeDeclaration';
+    predicate: string
+}
+
+export const IncludeDeclaration = 'IncludeDeclaration';
+
+export function isIncludeDeclaration(item: unknown): item is IncludeDeclaration {
+    return reflection.isInstance(item, IncludeDeclaration);
+}
+
+export interface IntegerLiteral extends AstNode {
+    readonly $container: EnumMemberStatement;
+    readonly $type: 'IntegerLiteral';
+    value: number
+}
+
+export const IntegerLiteral = 'IntegerLiteral';
+
+export function isIntegerLiteral(item: unknown): item is IntegerLiteral {
+    return reflection.isInstance(item, IntegerLiteral);
+}
+
+export interface MemberStatement extends AstNode {
+    readonly $container: StructDeclaration;
+    readonly $type: 'MemberStatement';
+    name: IdentifierExpression
+    type: TypeExpression
+}
+
+export const MemberStatement = 'MemberStatement';
+
+export function isMemberStatement(item: unknown): item is MemberStatement {
+    return reflection.isInstance(item, MemberStatement);
+}
+
+export interface Program extends AstNode {
+    readonly $type: 'Program';
+    declarations: Array<Declaration>
+}
+
+export const Program = 'Program';
+
+export function isProgram(item: unknown): item is Program {
+    return reflection.isInstance(item, Program);
+}
+
+export interface StructDeclaration extends AstNode {
+    readonly $container: Program;
+    readonly $type: 'StructDeclaration';
+    members: Array<MemberStatement>
+    name: IdentifierExpression
+}
+
+export const StructDeclaration = 'StructDeclaration';
+
+export function isStructDeclaration(item: unknown): item is StructDeclaration {
+    return reflection.isInstance(item, StructDeclaration);
+}
+
+export interface TypeExpression extends AstNode {
+    readonly $container: MemberStatement;
+    readonly $type: 'TypeExpression';
+    text: string
+}
+
+export const TypeExpression = 'TypeExpression';
+
+export function isTypeExpression(item: unknown): item is TypeExpression {
+    return reflection.isInstance(item, TypeExpression);
 }
 
 export interface FassAstType {
-    Greeting: Greeting
-    Model: Model
-    Person: Person
+    Declaration: Declaration
+    EnumDeclaration: EnumDeclaration
+    EnumMemberStatement: EnumMemberStatement
+    IdentifierExpression: IdentifierExpression
+    IncludeDeclaration: IncludeDeclaration
+    IntegerLiteral: IntegerLiteral
+    MemberStatement: MemberStatement
+    Program: Program
+    StructDeclaration: StructDeclaration
+    TypeExpression: TypeExpression
 }
 
 export class FassAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Greeting', 'Model', 'Person'];
+        return ['Declaration', 'EnumDeclaration', 'EnumMemberStatement', 'IdentifierExpression', 'IncludeDeclaration', 'IntegerLiteral', 'MemberStatement', 'Program', 'StructDeclaration', 'TypeExpression'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
+            case StructDeclaration: {
+                return this.isSubtype(Declaration, supertype);
+            }
             default: {
                 return false;
             }
@@ -65,9 +156,6 @@ export class FassAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'Greeting:person': {
-                return Person;
-            }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);
             }
@@ -76,12 +164,27 @@ export class FassAstReflection extends AbstractAstReflection {
 
     getTypeMetaData(type: string): TypeMetaData {
         switch (type) {
-            case 'Model': {
+            case 'EnumDeclaration': {
                 return {
-                    name: 'Model',
+                    name: 'EnumDeclaration',
                     mandatory: [
-                        { name: 'greetings', type: 'array' },
-                        { name: 'persons', type: 'array' }
+                        { name: 'members', type: 'array' }
+                    ]
+                };
+            }
+            case 'Program': {
+                return {
+                    name: 'Program',
+                    mandatory: [
+                        { name: 'declarations', type: 'array' }
+                    ]
+                };
+            }
+            case 'StructDeclaration': {
+                return {
+                    name: 'StructDeclaration',
+                    mandatory: [
+                        { name: 'members', type: 'array' }
                     ]
                 };
             }

@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+/*import chalk from 'chalk';
 import { Command } from 'commander';
 import { Model } from '../language-server/generated/ast';
 import { FassLanguageMetaData } from '../language-server/generated/module';
@@ -34,4 +34,4 @@ export default function(): void {
         .action(generateAction);
 
     program.parse(process.argv);
-}
+}*/

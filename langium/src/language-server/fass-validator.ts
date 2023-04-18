@@ -1,5 +1,5 @@
-import { ValidationAcceptor, ValidationChecks } from 'langium';
-import { FassAstType, Person } from './generated/ast';
+import { ValidationChecks } from 'langium';
+import { FassAstType } from './generated/ast';
 import type { FassServices } from './fass-module';
 
 /**
@@ -8,9 +8,7 @@ import type { FassServices } from './fass-module';
 export function registerValidationChecks(services: FassServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.FassValidator;
-    const checks: ValidationChecks<FassAstType> = {
-        Person: validator.checkPersonStartsWithCapital
-    };
+    const checks: ValidationChecks<FassAstType> = {};
     registry.register(checks, validator);
 }
 
@@ -18,14 +16,4 @@ export function registerValidationChecks(services: FassServices) {
  * Implementation of custom validations.
  */
 export class FassValidator {
-
-    checkPersonStartsWithCapital(person: Person, accept: ValidationAcceptor): void {
-        if (person.name) {
-            const firstChar = person.name.substring(0, 1);
-            if (firstChar.toUpperCase() !== firstChar) {
-                accept('warning', 'Person name should start with a capital.', { node: person, property: 'name' });
-            }
-        }
-    }
-
 }
