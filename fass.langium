@@ -4,9 +4,7 @@ entry Program:
     (declarations+=Declaration)*;
 
 Declaration:
-    StructDeclaration |
-    EnumDeclaration |
-    IncludeDeclaration;
+    StructDeclaration;
 
 StructDeclaration:
     "struct" name=IdentifierExpression "{"
