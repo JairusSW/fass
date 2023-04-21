@@ -5,13 +5,11 @@ export class Vec3 {
     z!: f32
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
         store<u8>(changetype<usize>(output), input.quad);
-        store<f32>(changetype<usize>(output), input.x, 1);
-        store<f32>(changetype<usize>(output), input.y, 5);
+        store<u64>(changetype<usize>(output), load<u64>(changetype<usize>(input) + <usize>1, offsetof<Vec3>()), 1);
     }
     @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Vec3): void {
         output.quad = load<u8>(changetype<usize>(input));
-        output.x = load<f32>(changetype<usize>(input), 1);
-        output.y = load<f32>(changetype<usize>(input), 5);
+        store<u64>(load<u64>(changetype<usize>(input), 1), 1);
     }
 }
 
