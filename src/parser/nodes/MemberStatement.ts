@@ -1,7 +1,6 @@
 import { Statement } from "./Statement";
 import { IdentifierExpression } from "./IdentifierExpression";
 import { TypeExpression } from "./TypeExpression";
-import { getType } from "../util/getType";
 
 export class MemberStatement extends Statement {
   public name!: IdentifierExpression;

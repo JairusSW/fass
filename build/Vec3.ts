@@ -1,9 +1,11 @@
 export class Vec3 {
+    name!: string
     quad!: Quadrant
     x!: f32
     y!: f32
     z!: f32
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
+        //String.UTF8.encodeUnsafe(changetype<usize>(input.name), input.name.length >> 1, changetype<usize>(output));
         store<u8>(changetype<usize>(output), input.quad);
         store<f32>(changetype<usize>(output), input.x, 1);
         store<f32>(changetype<usize>(output), input.y, 5);

@@ -82,61 +82,76 @@ export class Generator {
             const scopeElement = this.source.scope.getElement(undefined, member.type.text);
             // If not in scope, must be primitive.
             if (!scopeElement) {
-                if (member.type.text === "bool") {
+                if (namedType === "bool") {
                     serialize.push(`store<bool>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<bool>(changetype<usize>(input), ${offset});`);
                     offset += 1;
-                } else if (member.type.text === "u8") {
+                } else if (namedType === "u8" || namedType == "char") {
                     serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
                     offset += 1;
-                } else if (member.type.text === "i8") {
+                } else if (namedType === "i8") {
                     serialize.push(`store<i8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<i8>(changetype<usize>(input), ${offset});`);
                     offset += 1;
-                } else if (member.type.text === "u16") {
+                } else if (namedType === "u16") {
                     serialize.push(`store<u16>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<u16>(changetype<usize>(input), ${offset});`);
                     offset += 2;
-                } else if (member.type.text === "i16") {
+                } else if (namedType === "i16") {
                     serialize.push(`store<i16>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<i16>(changetype<usize>(input), ${offset});`);
                     offset += 2;
-                } else if (member.type.text === "u32") {
+                } else if (namedType === "u32") {
                     serialize.push(`store<u32>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<u32>(changetype<usize>(input), ${offset});`);
                     offset += 4;
-                } else if (member.type.text === "i32") {
+                } else if (namedType === "i32") {
                     serialize.push(`store<i32>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<i32>(changetype<usize>(input), ${offset});`);
                     offset += 4;
-                } else if (member.type.text === "u64") {
+                } else if (namedType === "u64") {
                     serialize.push(`store<u64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<u64>(changetype<usize>(input), ${offset});`);
                     offset += 8;
-                } else if (member.type.text === "i64") {
+                } else if (namedType === "i64") {
                     serialize.push(`store<i64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<i64>(changetype<usize>(input), ${offset});`);
                     offset += 8;
                 }
                 // FLOAT                
-                else if (member.type.text === "f32") {
+                else if (namedType === "f32") {
                     serialize.push(`store<f32>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<f32>(changetype<usize>(input), ${offset});`);
                     offset += 4;
-                } else if (member.type.text === "f64") {
+                } else if (namedType === "f64") {
                     serialize.push(`store<f64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<f64>(changetype<usize>(input), ${offset});`);
                     offset += 8;
                 }
+
+                if (namedType.endsWith("]")) {
+                    // We have either a static or dynamic sequence.
+                    const baseType = namedType.slice(0, namedType.indexOf("["));
+                    const innerExpression = namedType.slice(namedType.indexOf("[") + 1, namedType.length - 1);
+
+                    const isStatic = innerExpression.length ? true : false;
+
+                    if (isStatic) {
+                        // We have a set-length string
+                        if (baseType == "char") {
+                            let tempOffset = 0;
+                            let bytesRem = parseInt(innerExpression);
+                            offset += bytesRem;
+                            serialize.push(`memory.copy(changetype<us)`)
+                        }
+                    }
+                }
+
             } else {
                 // Here we have actual structures
                 if (scopeElement.node instanceof EnumDeclaration && scopeElement.name == namedType) {
                     serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName});`);
-                    deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input));`);
-                    offset += 1;
-                } else if (scopeElement.node instanceof StructDeclaration && scopeElement.name == namedType) {
-                    //serialize.push(...);
                     deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input));`);
                     offset += 1;
                 }
@@ -175,6 +190,7 @@ export class Generator {
 }
 
 const sourceVec3 = new Source("Vec3.fass", `struct Vec3 {
+    name: char[8]
     quad: Quadrant
     x: f32
     y: f32
