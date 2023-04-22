@@ -1,0 +1,11 @@
+- Add Optimization Pass
+    - Combine two 32-bit (or 8,16,32) values into one single 64 bit load/store
+    - Use SIMD to:
+        - Make that 128-bits
+        - Make copies faster
+        - Make UTF-16 to UTF-8 faster
+            - https://dirtyhandscoding.github.io/posts/utf8lut-vectorized-utf-8-converter-encoding-utf-8.html
+- Implement other structures
+    - Dynamic Struct
+    - Sequence
+    - List
