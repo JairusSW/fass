@@ -3,5 +3,8 @@
     "@types/node": "^18.15.11",
     "assemblyscript": "^0.27.2",
     "prettier": "^2.8.7"
+  },
+  "dependencies": {
+    "yargs": "^17.7.1"
   }
 }

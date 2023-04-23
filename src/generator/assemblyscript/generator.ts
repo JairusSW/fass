@@ -63,7 +63,7 @@ export class Generator {
         let txt = `export class ${decl.name.value} {`;
 
         for (const { name: { value }, type: { text }} of decl.members) {
-            txt += `\n    ${value}!: ${text}`;
+            txt += `\n    ${value}!: ${text};`;
             //                  ^ Because intellisense hates us
         }
         
@@ -140,10 +140,10 @@ export class Generator {
                     if (isStatic) {
                         // We have a set-length string
                         if (baseType == "char") {
-                            let tempOffset = 0;
-                            let bytesRem = parseInt(innerExpression);
-                            offset += bytesRem;
-                            serialize.push(`memory.copy(changetype<us)`)
+                            let length = parseInt(innerExpression);
+                            offset += length;
+                            serialize.push(`String.UTF8.encodeUnsafe(changetype<usize>(input.${declaredName}), ${length}, changetype<usize>(output));`);
+                            deserialize.push(`output.${declaredName} = String.UTF8.decodeUnsafe(changetype<usize>(input), ${length});`)
                         }
                     }
                 }
@@ -151,24 +151,24 @@ export class Generator {
             } else {
                 // Here we have actual structures
                 if (scopeElement.node instanceof EnumDeclaration && scopeElement.name == namedType) {
-                    serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName});`);
-                    deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input));`);
+                    serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
+                    deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
                     offset += 1;
                 }
             }
         }
         
-        size += offset + ";";
+        txt += "\t\n" + (size += offset + ";");
 
         txt += "\n    " + serialize[0];
-        for (let i = 1; i < serialize.length - 1; i++) {
+        for (let i = 1; i < serialize.length; i++) {
             const serializeText = serialize[i];
             txt += "\n        " + serializeText;
         }
         txt += "\n    }";
 
         txt += "\n    " + deserialize[0];
-        for (let i = 1; i < serialize.length - 1; i++) {
+        for (let i = 1; i < serialize.length; i++) {
             const deserializeText = deserialize[i];
             txt += "\n         " + deserializeText;
         }
@@ -192,9 +192,9 @@ export class Generator {
 const sourceVec3 = new Source("Vec3.fass", `struct Vec3 {
     name: char[8]
     quad: Quadrant
-    x: f32
-    y: f32
-    z: f32
+    x: i8
+    y: i8
+    z: i8
 }
 
 enum Quadrant {
