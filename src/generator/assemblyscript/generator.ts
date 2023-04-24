@@ -147,7 +147,6 @@ export class Generator {
                         }
                     }
                 }
-
             } else {
                 // Here we have actual structures
                 if (scopeElement.node instanceof EnumDeclaration && scopeElement.name == namedType) {
@@ -158,7 +157,7 @@ export class Generator {
             }
         }
         
-        txt += "\t\n" + (size += offset + ";");
+        txt += "\n    " + (size += offset + ";");
 
         txt += "\n    " + serialize[0];
         for (let i = 1; i < serialize.length; i++) {
