@@ -57,8 +57,9 @@ export class Parser {
 
       // If the token is "include", parse the included file
       if (currentToken == "include") {
-        stmts.push(this.parseIncludeDeclaration(source));
-        console.log(this.parseIncludeDeclaration(source))
+        const includeDecl = this.parseIncludeDeclaration(source);
+        stmts.push(includeDecl);
+        source.stmts.push(includeDecl);
       } else if (currentToken == "struct") {
         // If the token is "struct", parse the struct declaration
         stmts.push(this.parseStructDeclaration(source)!);

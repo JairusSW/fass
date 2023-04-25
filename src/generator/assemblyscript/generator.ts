@@ -47,7 +47,6 @@ export class Generator {
     public source!: Source;
     constructor(source: Source, options?: GeneratorOptions) {
         this.source = source;
-        console.log(source.stmts)
     }
     generate(): string {
         for (const decl of this.source.stmts) {
@@ -66,10 +65,11 @@ export class Generator {
         console.log("generating include decl")
         const imports: string[] = [];
         for (const stmt of decl.included) {
+            console.log(stmt)
             const name = getNameOfDecl(stmt);
             if (name) imports.push(name);
         }
-        return `import { ${imports.join(", ")} } from "${decl.predicate.replace(".fass", ".ts")}";`
+        return `import { ${imports.join(", ")} } from ${decl.predicate.replace(".fass", ".ts")};`
     }
     generateStaticStruct(decl: StructDeclaration): string {
         let txt = `export class ${decl.name.value} {`;
@@ -168,7 +168,7 @@ export class Generator {
                     deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
                     offset += 1;
                 } else if (scopeElement.node instanceof StructDeclaration && scopeElement.name == namedType) {
-                    members = [...members.slice(0, i), ...scopeElement.node.members, ...members.slice(i)];
+                    
                 }
             }
         }
