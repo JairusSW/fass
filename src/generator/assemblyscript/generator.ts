@@ -1,4 +1,4 @@
-import { EnumDeclaration, StructDeclaration } from "../../parser/nodes";
+import { EnumDeclaration, IncludeDeclaration, StructDeclaration } from "../../parser/nodes";
 import { Parser } from "../../parser/parser";
 import { Source } from "../../parser/source";
 
@@ -47,6 +47,7 @@ export class Generator {
     public source!: Source;
     constructor(source: Source, options?: GeneratorOptions) {
         this.source = source;
+        console.log(source.stmts)
     }
     generate(): string {
         for (const decl of this.source.stmts) {
@@ -54,10 +55,21 @@ export class Generator {
                 this.text += "\n\n" + this.generateStaticStruct(decl);
             } else if (decl instanceof EnumDeclaration) {
                 this.text += "\n\n" + this.generateEnum(decl);
+            } else if (decl instanceof IncludeDeclaration) {
+                this.text += "\n\n" + this.generateIncludeDecl(decl);
             }
         }
         // Slice of first "/n/n"
         return this.text.slice(2);
+    }
+    generateIncludeDecl(decl: IncludeDeclaration): string {
+        console.log("generating include decl")
+        const imports: string[] = [];
+        for (const stmt of decl.included) {
+            const name = getNameOfDecl(stmt);
+            if (name) imports.push(name);
+        }
+        return `import { ${imports.join(", ")} } from "${decl.predicate.replace(".fass", ".ts")}";`
     }
     generateStaticStruct(decl: StructDeclaration): string {
         let txt = `export class ${decl.name.value} {`;
@@ -70,13 +82,15 @@ export class Generator {
         let serialize = [`@inline __FASS_SERIALIZE(output: ArrayBuffer, input: ${decl.name.value}): void {`];
         let deserialize = [`@inline __FASS_DESERIALIZE(input: ArrayBuffer, output: ${decl.name.value}): void {`];
         // DETECT STATIC STRUCT
-        let size = `public __FASS_SIZE(): u32 = `;
+        let size = `public __FASS_SIZE: u32 = `;
 
         let offset = 0;
         
         // STAGE: Import and cache
+        let members = decl.members;
 
-        for (const member of decl.members) {
+        for (let i = 0; i < decl.members.length; i++) {
+            const member = members[i];
             const namedType = member.type.text;
             const declaredName = member.name.value;
             const scopeElement = this.source.scope.getElement(undefined, member.type.text);
@@ -153,6 +167,8 @@ export class Generator {
                     serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
                     deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
                     offset += 1;
+                } else if (scopeElement.node instanceof StructDeclaration && scopeElement.name == namedType) {
+                    members = [...members.slice(0, i), ...scopeElement.node.members, ...members.slice(i)];
                 }
             }
         }
@@ -169,7 +185,7 @@ export class Generator {
         txt += "\n    " + deserialize[0];
         for (let i = 1; i < serialize.length; i++) {
             const deserializeText = deserialize[i];
-            txt += "\n         " + deserializeText;
+            txt += "\n        " + deserializeText;
         }
         txt += "\n    }";
 
@@ -178,7 +194,7 @@ export class Generator {
         return txt;
     }
     generateEnum(decl: EnumDeclaration): string {
-        let txt = `enum ${decl.name.value} {`;
+        let txt = `export enum ${decl.name.value} {`;
         for (const member of decl.members) {
             txt += `\n    ${member.name.value}${member.value ? ` = ${member.value.value}` : ""},`;
         }
@@ -188,6 +204,15 @@ export class Generator {
     }
 }
 
+function getNameOfDecl<T>(decl: T): string | null {
+    if (decl instanceof StructDeclaration) {
+        return decl.name.value;
+    } else if (decl instanceof EnumDeclaration) {
+        return decl.name.value;
+    }
+    return null;
+}
+/*
 const sourceVec3 = new Source("Vec3.fass", `struct Vec3 {
     name: char[8]
     quad: Quadrant
@@ -214,4 +239,4 @@ parser.parseSource(sourceVec3);
 
 const generator = new Generator(sourceVec3);
 
-console.log(generator.generate());
+console.log(generator.generate());*/
