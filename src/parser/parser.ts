@@ -102,7 +102,7 @@ export class Parser {
       const parsed = this.parseSource(newSource!);
       //source.stmts = [...parsed, ...source.stmts];
 
-      includeDecl.included = parsed;
+      includeDecl.included = newSource.stmts;
 
       return includeDecl;
     }

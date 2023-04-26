@@ -1,15 +1,15 @@
 
 
-import { Vec3, Quadrant } from "Vec3.ts";
+import { Vec3, Quadrant } from "./Vec3";
 
-import {  } from "Movement.ts";
+import { Movement, Direction } from "./Movement";
 
 export class Player {
-    name!: char[8];
+    name!: string;
     id!: i32;
     pos!: Vec3;
     movement!: Movement;
-    data!: u8[5];
+    data!: StaticArray<u8>;
     public __FASS_SIZE: u32 = 12;
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Player): void {
         String.UTF8.encodeUnsafe(changetype<usize>(input.name), 8, changetype<usize>(output));

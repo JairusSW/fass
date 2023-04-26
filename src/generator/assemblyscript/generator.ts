@@ -8,7 +8,7 @@ enum Offsets {
     bool = 1,
     u16 = 2,
     i16 = 2,
-    u32 = 4,
+    u32 = 4, 
     i32 = 4,
     f32 = 4,
     u64 = 8,
@@ -65,17 +65,26 @@ export class Generator {
         console.log("generating include decl")
         const imports: string[] = [];
         for (const stmt of decl.included) {
-            console.log(stmt)
+            console.log(`Importing ${getNameOfDecl(stmt)}`)
             const name = getNameOfDecl(stmt);
             if (name) imports.push(name);
         }
-        return `import { ${imports.join(", ")} } from ${decl.predicate.replace(".fass", ".ts")};`
+        return `import { ${imports.join(", ")} } from "./${decl.predicate.slice(1).replace(".fass", "")};`
     }
     generateStaticStruct(decl: StructDeclaration): string {
         let txt = `export class ${decl.name.value} {`;
 
-        for (const { name: { value }, type: { text }} of decl.members) {
-            txt += `\n    ${value}!: ${text};`;
+        for (const { name: { value }, type: { text } } of decl.members) {
+            let type = text;
+            const key = value;
+            if (type.endsWith("]") && type.indexOf("[") > 0) {
+                if (type.startsWith("char")) {
+                    type = "string";
+                } else {
+                    type = `StaticArray<${type.slice(0, type.indexOf("["))}>`
+                }   
+            }
+            txt += `\n    ${key}!: ${type};`;
             //                  ^ Because intellisense hates us
         }
         
