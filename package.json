@@ -1,10 +1,30 @@
 {
+  "name": "fass",
+  "version": "0.1.0",
+  "description": "",
+  "contributors": [],
+  "license": "MIT",
+  "scripts": {
+    "build": "ts-node src/cli/cli"
+  },
   "devDependencies": {
     "@types/node": "^18.15.11",
     "assemblyscript": "^0.27.2",
     "prettier": "^2.8.7"
   },
-  "scripts": {
-    "build": "ts-node src/cli/cli"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JairusSW/fass.git"
+  },
+  "keywords": [
+    "assemblyscript",
+    "tbs",
+    "serialize",
+    "deserialize"
+  ],
+  "bugs": {
+    "url": "https://github.com/JairusSW/fass/issues"
+  },
+  "homepage": "https://github.com/JairusSW/fass#readme",
+  "type": "module"
 }
