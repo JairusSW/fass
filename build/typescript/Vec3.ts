@@ -3,7 +3,7 @@ export class Vec3 {
     x!: number;
     y!: number;
     z!: number;
-    static __FASS_SIZE = 13;
+    static __FASS_SIZE: number = 13;
     static __FASS_SERIALIZE(output: DataView, input: Vec3): void {
         output.setUint8(0, input.quad);
         output.setFloat32(1, input.x, true);
@@ -24,29 +24,3 @@ export enum Quadrant {
     BL = 3,
     BR = 4
 }
-
-
-const vec: Vec3 = {
-    quad: Quadrant.BL,
-    x: 8.68,
-    y: 4.23,
-    z: 9.53
-}
-
-const vec2 = new Vec3();
-
-const serializedVec = new DataView(new ArrayBuffer(Vec3.__FASS_SIZE));
-
-Vec3.__FASS_SERIALIZE(serializedVec, vec);
-
-console.log("Serialized Vec3: " + new Uint8Array(serializedVec.buffer).join(" "));
-
-console.log(`Matches: ${new Uint8Array(serializedVec.buffer).join(" ") == "3 72 225 10 65 41 92 135 64 225 122 24 65"}`)
-Vec3.__FASS_DESERIALIZE(serializedVec, vec2);
-
-console.log(`{
-    quad: ${vec2.quad},
-    x: ${vec2.x},
-    y: ${vec2.y},
-    z: ${vec2.z}
-}`);
