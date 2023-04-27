@@ -1,5 +1,3 @@
-
-
 export class Vec3 {
     quad!: Quadrant;
     x!: f32;

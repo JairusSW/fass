@@ -1,5 +1,3 @@
-
-
 export class Movement {
     moving!: bool;
     speed!: f32;

@@ -1,5 +1,3 @@
-
-
 import { Vec3, Quadrant } from "./Vec3";
 
 import { Movement, Direction } from "./Movement";

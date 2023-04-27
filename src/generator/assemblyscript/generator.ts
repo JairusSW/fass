@@ -1,5 +1,4 @@
 import { EnumDeclaration, IncludeDeclaration, StructDeclaration } from "../../parser/nodes";
-import { Parser } from "../../parser/parser";
 import { Source } from "../../parser/source";
 
 enum Offsets {
@@ -62,10 +61,8 @@ export class Generator {
         return this.text.slice(2);
     }
     generateIncludeDecl(decl: IncludeDeclaration): string {
-        console.log("generating include decl")
         const imports: string[] = [];
         for (const stmt of decl.included) {
-            console.log(`Importing ${getNameOfDecl(stmt)}`)
             const name = getNameOfDecl(stmt);
             if (name) imports.push(name);
         }

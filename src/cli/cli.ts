@@ -19,7 +19,7 @@ const parser = new Parser(sources);
 for (const source of parser.sources) {
     parser.parseSource(source);
     const generator = new Generator(source);
-    generator.generate();
+    const text = generator.generate();
 
-    fs.writeFileSync(outputPath + source.name.replace(".fass", ".ts"), generator.text);
+    fs.writeFileSync(outputPath + source.name.replace(".fass", ".ts"), text);
 }
