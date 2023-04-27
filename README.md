@@ -1,20 +1,23 @@
 # FASS
 
-FASS is a schema-driven serialization format designed for minimal overhead, performance, and usability. It aims to be as fast as possible while maintaining as little overhead as possible.
+FASS is a schema-driven serialization format designed for minimal overhead, high performance, and ease of use. It aims to be as fast as possible while maintaining as little overhead as possible.
 
 ## Purpose
 
-FASS was made to allow languages to represent complex structures in compact binary form with minimal overhead. Its purpose is to enable programs to share data in a compact and performant way.
+FASS is a lightweight serialization format meant to efficiently store complex data structures into a comprehensive binary form. Designed for minimal overhead, FASS compiles down to a few memory loads and stores without any need for parsing in order to achieve its blazing fast speed. Because of its ordered structure sequence, it eliminates the need for key storage and computation, bringing a considerable size difference.
 
 ## Features
+- Schema Driven: FASS uses its own schema format and compiler to generate and optimize complex structures in any supported language.
+- User Defined Types: FASS allows the user to define up to 200 custom data types.
+- Read Without Parsing: FASS eliminates the need for a parser allowing the user to access any section of data without the need to parse first.
 
-- Powerful schema format with custom user-defined types
-- Multiple flavors of data serialization to fit the user's specific needs
-- The ability to retrieve data without the extra overhead of parsing
-- A compact sorted data structure that omits the need for lookup keys
-- A inbuilt optimization pass in the compiler
+## Differences compared to other serialization formats
 
-
+- The FASS `struct` type is inspired by [Apache Avro](https://avro.apache.org/)'s binary format and eliminates the need for keys.
+- Similar to [FlatBuffers](https://github.com/google/flatbuffers), FASS implements per-key serialization and deserialization, but experiences less overhead due to its optimizing code generator.
+- It is much more performant than [JSON](https://www.json.org/json-en.html) because it is strongly types, compact, binary, and is much more performant.
+  
+- P.S. Need to compare stuff when FASS has a MVP.
 ## Types
 
 **Primitive Types**
