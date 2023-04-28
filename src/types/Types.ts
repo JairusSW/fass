@@ -1,4 +1,6 @@
-export enum Types {
+import { Statement } from "../parser/nodes";
+
+export enum TypeID {
   // Primitive 0-11
   u8 = 0,
   i8 = 1,
@@ -19,4 +21,14 @@ export enum Types {
   sequence = 15,
   // Dynamic length
   array = 16
+}
+
+export class ConcreteType {
+  public id!: number;
+  public name!: string;
+  public primitive!: boolean;
+  public reference!: Statement;
+  constructor(name: string, id: number, reference?: Statement) {
+    
+  }
 }

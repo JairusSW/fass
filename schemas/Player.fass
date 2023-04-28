@@ -2,8 +2,9 @@ include "Vec3.fass"
 include "Movement.fass"
 
 struct Player {
+    active: bool
     name: char[8]
-    id: i32
+    id: u64
     pos: Vec3
     movement: Movement
     data: u8[5]

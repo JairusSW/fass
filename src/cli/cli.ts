@@ -25,7 +25,6 @@ for (const file of sourceFiles) {
 const parser = new Parser(sources);
 
 for (const source of parser.sources) {
-    parser.parseSource(source);
     let generator = new AssemblyScriptGenerator(source);
     if (currentLanguage == "typescript") {
         generator = new TypeScriptGenerator(source);

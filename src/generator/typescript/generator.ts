@@ -15,36 +15,10 @@ enum Offsets {
     f64 = 8
 }
 
-class GeneratorOptions {
-    simd: boolean = false;
-}
-/**
- * FASS Code Generator for the AssemblyScript Language
- * 
- * Stages:
- * - Codegen
- * - Sorting
- * - Optimization
- * - Output
- * 
- * Codegen:
- * A bunch of load and store ops that push and pull data from a said buffer
- * 
- * Sorting:
- * Perhaps we can have dynamic-length sequences at the end and static structs aligned to the start,
- * so that there is no need to load a length-prefixed length of the sequence and add that to the offset.
- * 
- * Optimization:
- * Many of these operations can be combined into a single 64-bit load/store or a SIMD v128 load/store.
- * Take advantage of that to decrease overhead.
- * 
- * Output:
- * Should be formatted correctly and be conherent.
- */
 export class Generator {
     public text: string = "";
     public source!: Source;
-    constructor(source: Source, options?: GeneratorOptions) {
+    constructor(source: Source) {
         this.source = source;
     }
     generate(): string {
@@ -78,11 +52,32 @@ export class Generator {
                 if (type.startsWith("char")) {
                     type = "string";
                 } else {
-                    type = `StaticArray<${type.slice(0, type.indexOf("["))}>`
+                    type = `Array<${type.slice(0, type.indexOf("["))}>`
                 }
             }
-            txt += `\n    ${key}!: ${type.replace("f32", "number")};`;
-            //                  ^ Because intellisense hates us
+            switch (type) {
+                case "u8":
+                case "i8":
+                case "u16":
+                case "i16":
+                case "u32":
+                case "i32":
+                case "f32":
+                case "f64": {
+                    type = "number";
+                    break;
+                }
+                case "u64":
+                case "i64": {
+                    type = "bigint";
+                    break;
+                }
+                case "bool": {
+                    type = "boolean";
+                    break;
+                }
+            }
+            txt += `\n    ${key}!: ${type};`;
         }
 
         let serialize = [`static __FASS_SERIALIZE(output: DataView, input: ${decl.name.value}): void {`];
@@ -103,40 +98,40 @@ export class Generator {
             // If not in scope, must be primitive.
             if (!scopeElement) {
                 if (namedType === "bool") {
-                    serialize.push(`output.setUint8(${offset}, input.${declaredName} ? 1 : 0);`);
-                    deserialize.push(`output.${declaredName} = input.getUint8(${offset});`);
+                    serialize.push(`output.setUint8(${offset}, Number(input.${declaredName}));`);
+                    deserialize.push(`output.${declaredName} = Boolean(input.getUint8(${offset}));`);
                     offset += 1;
                 } else if (namedType === "u8" || namedType == "char") {
                     serialize.push(`output.setUint8(${offset}, input.${declaredName});`);
-                    deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
+                    deserialize.push(`output.${declaredName} = input.getUint8(${offset});`);
                     offset += 1;
                 } else if (namedType === "i8") {
                     serialize.push(`output.setInt8(${offset}, input.${declaredName});`);
-                    deserialize.push(`output.${declaredName} = load<i8>(changetype<usize>(input), ${offset});`);
+                    deserialize.push(`output.${declaredName} = input.getInt8(${offset});`);
                     offset += 1;
                 } else if (namedType === "u16") {
                     serialize.push(`output.setUint16(${offset}, input.${declaredName}, true);`);
-                    deserialize.push(`output.${declaredName} = load<u16>(changetype<usize>(input), ${offset});`);
+                    deserialize.push(`output.${declaredName} = input.getUint16(${offset}, true);`);
                     offset += 2;
                 } else if (namedType === "i16") {
                     serialize.push(`output.setInt16(${offset}, input.${declaredName}, true);`);
-                    deserialize.push(`output.${declaredName} = load<i16>(changetype<usize>(input), ${offset});`);
+                    deserialize.push(`output.${declaredName} = input.getInt16(${offset}, true);`);
                     offset += 2;
                 } else if (namedType === "u32") {
                     serialize.push(`output.setUint32(${offset}, input.${declaredName}, true);`);
-                    deserialize.push(`output.${declaredName} = load<u32>(changetype<usize>(input), ${offset});`);
+                    deserialize.push(`output.${declaredName} = input.getUint32(${offset}, true);`);
                     offset += 4;
                 } else if (namedType === "i32") {
                     serialize.push(`output.setInt32(${offset}, input.${declaredName}, true);`);
-                    deserialize.push(`output.${declaredName} = load<i32>(changetype<usize>(input), ${offset});`);
+                    deserialize.push(`output.${declaredName} = input.getInt32(${offset}, true);`);
                     offset += 4;
                 } else if (namedType === "u64") {
-                    serialize.push(`output.setBigInt64`);
-                    deserialize.push(`output.${declaredName} = load<u64>(changetype<usize>(input), ${offset});`);
+                    serialize.push(`output.setBigUint64(${offset}, input.${declaredName}, true);`);
+                    deserialize.push(`output.${declaredName} = input.getBigUint64(${offset}, true);`);
                     offset += 8;
                 } else if (namedType === "i64") {
-                    serialize.push(`store<i64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<i64>(changetype<usize>(input), ${offset});`);
+                    serialize.push(`output.setBigInt64(${offset}, input.${declaredName}, true);`);
+                    deserialize.push(`output.${declaredName} = input.getBigInt64(${offset}, true);`);
                     offset += 8;
                 }
                 // FLOAT                
@@ -162,8 +157,8 @@ export class Generator {
                         if (baseType == "char") {
                             let length = parseInt(innerExpression);
                             offset += length;
-                            serialize.push(`String.UTF8.encodeUnsafe(changetype<usize>(input.${declaredName}), ${length}, changetype<usize>(output));`);
-                            deserialize.push(`output.${declaredName} = String.UTF8.decodeUnsafe(changetype<usize>(input), ${length});`)
+                            serialize.push(`// STRINGS NOT SUPPORTED YET`);
+                            deserialize.push(`// STRINGS NOT SUPPORTED YET`)
                         }
                     }
                 }

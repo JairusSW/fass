@@ -1,5 +1,4 @@
 import { Expression } from "./Expression";
-import { Types } from "../../types/Types";
 
 export const TYPES = [
   "string",
@@ -31,10 +30,8 @@ const DEFAULTTYPES = [
 
 export class TypeExpression extends Expression {
   public text!: string;
-  public type!: Types;
-  constructor(text?: string, type?: Types) {
+  constructor(text?: string) {
     super();
     if (text) this.text = text!;
-    if (type) this.type = type!;
   }
 }

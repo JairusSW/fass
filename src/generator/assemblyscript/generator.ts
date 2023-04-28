@@ -18,29 +18,7 @@ enum Offsets {
 class GeneratorOptions {
     simd: boolean = false;
 }
-/**
- * FASS Code Generator for the AssemblyScript Language
- * 
- * Stages:
- * - Codegen
- * - Sorting
- * - Optimization
- * - Output
- * 
- * Codegen:
- * A bunch of load and store ops that push and pull data from a said buffer
- * 
- * Sorting:
- * Perhaps we can have dynamic-length sequences at the end and static structs aligned to the start,
- * so that there is no need to load a length-prefixed length of the sequence and add that to the offset.
- * 
- * Optimization:
- * Many of these operations can be combined into a single 64-bit load/store or a SIMD v128 load/store.
- * Take advantage of that to decrease overhead.
- * 
- * Output:
- * Should be formatted correctly and be conherent.
- */
+
 export class Generator {
     public text: string = "";
     public source!: Source;
@@ -218,31 +196,3 @@ function getNameOfDecl<T>(decl: T): string | null {
     }
     return null;
 }
-/*
-const sourceVec3 = new Source("Vec3.fass", `struct Vec3 {
-    name: char[8]
-    quad: Quadrant
-    x: i8
-    y: i8
-    z: i8
-}
-
-enum Quadrant {
-    TL = 1
-    TR = 2
-    BL = 3
-    BR = 4
-}`);
-
-const sourceVec3Wrap = new Source("Wrap.fass", `include "Vec3.fass"
-struct Wrap {
-    vec: Vec3
-}`);
-
-const parser = new Parser([sourceVec3, sourceVec3Wrap]);
-
-parser.parseSource(sourceVec3);
-
-const generator = new Generator(sourceVec3);
-
-console.log(generator.generate());*/

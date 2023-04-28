@@ -1,14 +1,14 @@
 export class Movement {
-    moving!: bool;
+    moving!: boolean;
     speed!: number;
     direction!: Direction;
     static __FASS_SIZE: number = 5;
     static __FASS_SERIALIZE(output: DataView, input: Movement): void {
-        output.setUint8(0, input.moving ? 1 : 0);
+        output.setUint8(0, Number(input.moving));
         output.setFloat32(1, input.speed, true);
     }
     static __FASS_DESERIALIZE(input: DataView, output: Movement): void {
-        output.moving = input.getUint8(0);
+        output.moving = Boolean(input.getUint8(0));
         output.speed = input.getFloat32(1, true);
     }
 }
