@@ -15,7 +15,7 @@ FASS is a lightweight serialization format meant to efficiently store complex da
 
 - The FASS `struct` type is inspired by [Apache Avro](https://avro.apache.org/)'s binary format and eliminates the need for keys.
 - Similar to [FlatBuffers](https://github.com/google/flatbuffers), FASS implements per-key serialization and deserialization, but experiences less overhead due to its optimizing code generator.
-- It is much more performant than [JSON](https://www.json.org/json-en.html) because it is strongly types, compact, binary, and is much more performant.
+- It is much more performant than [JSON](https://www.json.org/json-en.html) because it takes advantage of the strongly typed schema driven nature to produce much more compact stripped down binary buffers, at the cost of being less dynamic (FASS is not a direct replacement or competitor for JSON).
   
 - P.S. Need to compare stuff when FASS has a MVP.
 ## Types
