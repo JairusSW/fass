@@ -48,35 +48,9 @@ export class Generator {
         for (const { name: { value }, type: { text } } of decl.members) {
             let type = text;
             const key = value;
-            if (type.endsWith("]") && type.indexOf("[") > 0) {
-                if (type.startsWith("char")) {
-                    type = "string";
-                } else {
-                    type = `Array<${type.slice(0, type.indexOf("["))}>`
-                }
-            }
-            switch (type) {
-                case "u8":
-                case "i8":
-                case "u16":
-                case "i16":
-                case "u32":
-                case "i32":
-                case "f32":
-                case "f64": {
-                    type = "number";
-                    break;
-                }
-                case "u64":
-                case "i64": {
-                    type = "bigint";
-                    break;
-                }
-                case "bool": {
-                    type = "boolean";
-                    break;
-                }
-            }
+            
+            type = typeToTS(type);
+            
             txt += `\n    ${key}!: ${type};`;
         }
 
@@ -213,31 +187,38 @@ function getNameOfDecl<T>(decl: T): string | null {
     }
     return null;
 }
-/*
-const sourceVec3 = new Source("Vec3.fass", `struct Vec3 {
-    name: char[8]
-    quad: Quadrant
-    x: i8
-    y: i8
-    z: i8
+
+function typeToTS(type: string): string {
+    switch (type) {
+        case "u8":
+        case "i8":
+        case "u16":
+        case "i16":
+        case "u32":
+        case "i32":
+        case "f32":
+        case "f64": {
+            return "number";
+        }
+        case "u64":
+        case "i64": {
+            return "bigint"
+        }
+        case "bool": {
+            return "boolean"
+        }
+    }
+
+    if (type.includes("[") && type.endsWith("]")) {
+        const startIndex = type.indexOf("[");
+        //const innerType = type.slice(startIndex, type.length - 1);
+        let outerType = type.slice(0, startIndex);
+        if (outerType == "char") {
+            return "string";
+        }
+        outerType = typeToTS(outerType);
+        return `Array<${outerType}>`
+    }
+
+    return type;
 }
-
-enum Quadrant {
-    TL = 1
-    TR = 2
-    BL = 3
-    BR = 4
-}`);
-
-const sourceVec3Wrap = new Source("Wrap.fass", `include "Vec3.fass"
-struct Wrap {
-    vec: Vec3
-}`);
-
-const parser = new Parser([sourceVec3, sourceVec3Wrap]);
-
-parser.parseSource(sourceVec3);
-
-const generator = new Generator(sourceVec3);
-
-console.log(generator.generate());*/

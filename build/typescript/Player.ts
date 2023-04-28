@@ -8,7 +8,7 @@ export class Player {
     id!: bigint;
     pos!: Vec3;
     movement!: Movement;
-    data!: Array<u8>;
+    data!: Array<number>;
     static __FASS_SIZE: number = 17;
     static __FASS_SERIALIZE(output: DataView, input: Player): void {
         output.setUint8(0, Number(input.active));
