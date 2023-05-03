@@ -15,14 +15,10 @@ enum Offsets {
     f64 = 8
 }
 
-class GeneratorOptions {
-    simd: boolean = false;
-}
-
 export class Generator {
     public text: string = "";
     public source!: Source;
-    constructor(source: Source, options?: GeneratorOptions) {
+    constructor(source: Source) {
         this.source = source;
     }
     generate(): string {

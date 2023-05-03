@@ -5,7 +5,7 @@ export class Tokenizer {
         index: number
     } | null = null;
     public currentTokenIndex: number = 0;
-
+    private isComment: boolean = false;
     constructor(text: string) {
         this.text = text;
     }
@@ -49,6 +49,14 @@ export class Tokenizer {
         const match = tokenRegExp.exec(text);
         if (match) {
             const value = match[0];
+            if (value == "//") {
+                const comment = text.slice(match.index, text.indexOf("\n", match.index));
+                this.currentTokenIndex = match.index + comment.length + this.currentTokenIndex
+                return {
+                    value: comment,
+                    index: this.currentTokenIndex
+                }
+            }
             let index = match.index + this.currentTokenIndex;
             this.currentTokenIndex = index + value.length;
             return { value, index };
@@ -56,3 +64,19 @@ export class Tokenizer {
         return null;
     }
 }
+
+const tokenizer = new Tokenizer(`struct Vec3 {
+    // This is a comment
+    quad: Quadrant
+    x: f32
+    y: f32
+    z: f32
+}
+enum Quadrant {
+    TL = 1
+    TR = 2
+    BL = 3
+    BR = 4
+}`);
+
+console.log(tokenizer.getAllTokens())
