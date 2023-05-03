@@ -64,19 +64,3 @@ export class Tokenizer {
         return null;
     }
 }
-
-const tokenizer = new Tokenizer(`struct Vec3 {
-    // This is a comment
-    quad: Quadrant
-    x: f32
-    y: f32
-    z: f32
-}
-enum Quadrant {
-    TL = 1
-    TR = 2
-    BL = 3
-    BR = 4
-}`);
-
-console.log(tokenizer.getAllTokens())
