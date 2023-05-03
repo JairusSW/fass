@@ -1,4 +1,4 @@
-/// This is a Single Line comment!
+// This is a Single Line comment!
 export class Vec3 {
     quad!: Quadrant;
     x!: number;
