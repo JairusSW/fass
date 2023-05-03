@@ -10,3 +10,4 @@ export * from "./nodes/MemberStatement";
 export * from "./nodes/Statement";
 export * from "./nodes/StructDeclaration";
 export * from "./nodes/TypeExpression";
+export * from "./nodes/CommentStatement";

@@ -8,7 +8,8 @@ import {
   IdentifierExpression,
   MemberStatement,
   EnumMemberStatement,
-  IntegerLiteral
+  IntegerLiteral,
+  CommentStatement
 } from "./nodes";
 
 import { ScopeElement } from "./scope";
@@ -50,18 +51,17 @@ export class Parser {
       while (true) {
         currentToken = tokenizer.seeToken();
 
-        // If the token is "include", parse the included file
         if (currentToken == "include") {
           const includeDecl = this.parseIncludeDeclaration(source);
           source.stmts.push(includeDecl);
         } else if (currentToken == "struct") {
-          // If the token is "struct", parse the struct declaration
           source.stmts.push(this.parseStructDeclaration(source)!);
         } else if (currentToken == "enum") {
-          // If the token is "enum", parse the enum declaration
           source.stmts.push(this.parseEnumDeclaration(source)!);
+        } else if (currentToken?.startsWith("//")) {
+          source.stmts.push(new CommentStatement(currentToken.slice(2), "single"));
+          source.tokenizer.getToken();
         } else {
-          // If the token is not "include", "struct", or "enum", break the loop
           break;
         }
       }

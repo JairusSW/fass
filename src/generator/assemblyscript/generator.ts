@@ -1,4 +1,4 @@
-import { EnumDeclaration, IncludeDeclaration, StructDeclaration } from "../../parser/nodes";
+import { CommentStatement, EnumDeclaration, IncludeDeclaration, StructDeclaration } from "../../parser/nodes";
 import { Source } from "../../parser/source";
 
 enum Offsets {
@@ -18,21 +18,24 @@ enum Offsets {
 export class Generator {
     public text: string = "";
     public source!: Source;
-    constructor(source: Source) {
+    public debug: boolean = false;
+    constructor(source: Source, debug?: boolean) {
         this.source = source;
+        if (debug) this.debug = debug;
     }
     generate(): string {
         for (const decl of this.source.stmts) {
             if (decl instanceof StructDeclaration) {
-                this.text += "\n\n" + this.generateStaticStruct(decl);
+                this.text += this.generateStaticStruct(decl) + "\n\n";
             } else if (decl instanceof EnumDeclaration) {
-                this.text += "\n\n" + this.generateEnum(decl);
+                this.text += this.generateEnum(decl) + "\n\n";
             } else if (decl instanceof IncludeDeclaration) {
-                this.text += "\n\n" + this.generateIncludeDecl(decl);
+                this.text += this.generateIncludeDecl(decl) + "\n\n";
+            } else if (decl instanceof CommentStatement && this.debug) {
+                this.text += "//" + decl.text + "\n";
             }
         }
-        // Slice of first "/n/n"
-        return this.text.slice(2);
+        return this.text.trimEnd();
     }
     generateIncludeDecl(decl: IncludeDeclaration): string {
         const imports: string[] = [];

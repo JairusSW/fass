@@ -5,7 +5,6 @@ export class Tokenizer {
         index: number
     } | null = null;
     public currentTokenIndex: number = 0;
-    private isComment: boolean = false;
     constructor(text: string) {
         this.text = text;
     }
