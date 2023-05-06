@@ -1,4 +1,4 @@
-import { CommentStatement, EnumDeclaration, IncludeDeclaration, StructDeclaration } from "../../parser/nodes";
+import { CommentStatement, EnumDeclaration, IncludeDeclaration, MemberStatement, StructDeclaration } from "../../parser/nodes";
 import { Source } from "../../parser/source";
 
 enum Offsets {
@@ -7,7 +7,7 @@ enum Offsets {
     bool = 1,
     u16 = 2,
     i16 = 2,
-    u32 = 4, 
+    u32 = 4,
     i32 = 4,
     f32 = 4,
     u64 = 8,
@@ -17,13 +17,15 @@ enum Offsets {
 
 export class Generator {
     public text: string = "";
+    public sources!: Source[];
     public source!: Source;
     public debug: boolean = false;
-    constructor(source: Source, debug?: boolean) {
-        this.source = source;
+    constructor(sources: Source[], debug?: boolean) {
+        this.sources = sources;
         if (debug) this.debug = debug;
     }
-    generate(): string {
+    generate(source: Source): string {
+        this.source = source;
         for (const decl of this.source.stmts) {
             if (decl instanceof StructDeclaration) {
                 this.text += this.generateStaticStruct(decl) + "\n\n";
@@ -45,6 +47,121 @@ export class Generator {
         }
         return `import { ${imports.join(", ")} } from "./${decl.predicate.slice(1).replace(".fass", "")};`
     }
+    generateStructMember(member: MemberStatement, accessors: string[], offset: number): {
+        serialize: string[],
+        deserialize: string[],
+        offset: number
+    } {
+        const type = member.type.text;
+        const name = member.name.value;
+
+        const accessor = accessors.length ? accessors.join(".") + "." + name : name;
+        const scopeElement = this.source.scope.getElement(undefined, member.type.text);
+
+        let serialize: string[] = [];
+        let deserialize: string[] = [];
+
+        if (!scopeElement) {
+            if (type === "bool") {
+                serialize = [`store<bool>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<bool>(changetype<usize>(input), ${offset});`];
+                offset += 1;
+                return { serialize, deserialize, offset };
+            } else if (type === "u8" || type == "char") {
+                serialize = [`store<u8>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<u8>(changetype<usize>(input), ${offset});`];
+                offset += 1;
+                return { serialize, deserialize, offset };
+            } else if (type === "i8") {
+                serialize = [`store<i8>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<i8>(changetype<usize>(input), ${offset});`];
+                offset += 1;
+                return { serialize, deserialize, offset };
+            } else if (type === "u16") {
+                serialize = [`store<u16>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<u16>(changetype<usize>(input), ${offset});`];
+                offset += 2;
+                return { serialize, deserialize, offset };
+            } else if (type === "i16") {
+                serialize = [`store<i16>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<i16>(changetype<usize>(input), ${offset});`];
+                offset += 2;
+                return { serialize, deserialize, offset };
+            } else if (type === "u32") {
+                serialize = [`store<u32>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<u32>(changetype<usize>(input), ${offset});`];
+                offset += 4;
+                return { serialize, deserialize, offset };
+            } else if (type === "i32") {
+                serialize = [`store<i32>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<i32>(changetype<usize>(input), ${offset});`];
+                offset += 4;
+                return { serialize, deserialize, offset };
+            } else if (type === "u64") {
+                serialize = [`store<u64>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<u64>(changetype<usize>(input), ${offset});`];
+                offset += 8;
+                return { serialize, deserialize, offset };
+            } else if (type === "i64") {
+                serialize = [`store<i64>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<i64>(changetype<usize>(input), ${offset});`];
+                offset += 8;
+                return { serialize, deserialize, offset };
+            }
+            // FLOAT                
+            else if (type === "f32") {
+                serialize = [`store<f32>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<f32>(changetype<usize>(input), ${offset});`];
+                offset += 4;
+                return { serialize, deserialize, offset };
+            } else if (type === "f64") {
+                serialize = [`store<f64>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<f64>(changetype<usize>(input), ${offset});`];
+                offset += 8;
+                return { serialize, deserialize, offset };
+            }
+
+            if (type.endsWith("]")) {
+                // We have either a static or dynamic sequence.
+                const baseType = type.slice(0, type.indexOf("["));
+                const innerExpression = type.slice(type.indexOf("[") + 1, type.length - 1);
+
+                const isStatic = innerExpression.length ? true : false;
+
+                if (isStatic) {
+                    // We have a set-length string
+                    if (baseType == "char") {
+                        let length = parseInt(innerExpression);
+                        offset += length;
+                        serialize = [`String.UTF8.encodeUnsafe(changetype<usize>(input.${accessor}), ${length}, changetype<usize>(output));`];
+                        deserialize = [`output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input), ${length});`];
+                        return { serialize, deserialize, offset };
+                    }
+                }
+            }
+        } else {
+            if (scopeElement.node instanceof EnumDeclaration && scopeElement.name == type) {
+                serialize = [`store<u8>(changetype<usize>(output), input.${accessor}, ${offset});`];
+                deserialize = [`output.${accessor} = load<u8>(changetype<usize>(input), ${offset});`];
+                offset += 1;
+                return { serialize, deserialize, offset };
+            } else if (scopeElement.node instanceof StructDeclaration && scopeElement.name == type) {
+                for (const memberStmt of scopeElement.node.members) {
+                    const generated = this.generateStructMember(memberStmt, [accessor], offset);
+                    serialize.push(...generated.serialize);
+                    deserialize.push(...generated.deserialize);
+                    console.log(generated.serialize);
+                    console.log(generated.deserialize);
+                }
+                return { serialize, deserialize, offset };
+            }
+        }
+        return {
+            serialize: [],
+            deserialize: [],
+            offset: -1
+        }
+    }
     generateStaticStruct(decl: StructDeclaration): string {
         let txt = `export class ${decl.name.value} {`;
 
@@ -56,106 +173,29 @@ export class Generator {
                     type = "string";
                 } else {
                     type = `StaticArray<${type.slice(0, type.indexOf("["))}>`
-                }   
+                }
             }
             txt += `\n    ${key}!: ${type};`;
             //                  ^ Because intellisense hates us
         }
-        
+
         let serialize = [`@inline __FASS_SERIALIZE(output: ArrayBuffer, input: ${decl.name.value}): void {`];
         let deserialize = [`@inline __FASS_DESERIALIZE(input: ArrayBuffer, output: ${decl.name.value}): void {`];
         // DETECT STATIC STRUCT
         let size = `public __FASS_SIZE: u32 = `;
 
         let offset = 0;
-        
+        console.log(this.source.scope.elements)
         // STAGE: Import and cache
         let members = decl.members;
-
         for (let i = 0; i < decl.members.length; i++) {
             const member = members[i];
-            const namedType = member.type.text;
-            const declaredName = member.name.value;
-            const scopeElement = this.source.scope.getElement(undefined, member.type.text);
-            // If not in scope, must be primitive.
-            if (!scopeElement) {
-                if (namedType === "bool") {
-                    serialize.push(`store<bool>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<bool>(changetype<usize>(input), ${offset});`);
-                    offset += 1;
-                } else if (namedType === "u8" || namedType == "char") {
-                    serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
-                    offset += 1;
-                } else if (namedType === "i8") {
-                    serialize.push(`store<i8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<i8>(changetype<usize>(input), ${offset});`);
-                    offset += 1;
-                } else if (namedType === "u16") {
-                    serialize.push(`store<u16>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<u16>(changetype<usize>(input), ${offset});`);
-                    offset += 2;
-                } else if (namedType === "i16") {
-                    serialize.push(`store<i16>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<i16>(changetype<usize>(input), ${offset});`);
-                    offset += 2;
-                } else if (namedType === "u32") {
-                    serialize.push(`store<u32>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<u32>(changetype<usize>(input), ${offset});`);
-                    offset += 4;
-                } else if (namedType === "i32") {
-                    serialize.push(`store<i32>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<i32>(changetype<usize>(input), ${offset});`);
-                    offset += 4;
-                } else if (namedType === "u64") {
-                    serialize.push(`store<u64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<u64>(changetype<usize>(input), ${offset});`);
-                    offset += 8;
-                } else if (namedType === "i64") {
-                    serialize.push(`store<i64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<i64>(changetype<usize>(input), ${offset});`);
-                    offset += 8;
-                }
-                // FLOAT                
-                else if (namedType === "f32") {
-                    serialize.push(`store<f32>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<f32>(changetype<usize>(input), ${offset});`);
-                    offset += 4;
-                } else if (namedType === "f64") {
-                    serialize.push(`store<f64>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<f64>(changetype<usize>(input), ${offset});`);
-                    offset += 8;
-                }
-
-                if (namedType.endsWith("]")) {
-                    // We have either a static or dynamic sequence.
-                    const baseType = namedType.slice(0, namedType.indexOf("["));
-                    const innerExpression = namedType.slice(namedType.indexOf("[") + 1, namedType.length - 1);
-
-                    const isStatic = innerExpression.length ? true : false;
-
-                    if (isStatic) {
-                        // We have a set-length string
-                        if (baseType == "char") {
-                            let length = parseInt(innerExpression);
-                            offset += length;
-                            serialize.push(`String.UTF8.encodeUnsafe(changetype<usize>(input.${declaredName}), ${length}, changetype<usize>(output));`);
-                            deserialize.push(`output.${declaredName} = String.UTF8.decodeUnsafe(changetype<usize>(input), ${length});`)
-                        }
-                    }
-                }
-            } else {
-                // Here we have actual structures
-                if (scopeElement.node instanceof EnumDeclaration && scopeElement.name == namedType) {
-                    serialize.push(`store<u8>(changetype<usize>(output), input.${declaredName}, ${offset});`);
-                    deserialize.push(`output.${declaredName} = load<u8>(changetype<usize>(input), ${offset});`);
-                    offset += 1;
-                } else if (scopeElement.node instanceof StructDeclaration && scopeElement.name == namedType) {
-                    
-                }
-            }
+            const generated = this.generateStructMember(member, [], offset);
+            serialize.push(...generated.serialize);
+            deserialize.push(...generated.deserialize);
+            offset += generated.offset;
         }
-        
+
         txt += "\n    " + (size += offset + ";");
 
         txt += "\n    " + serialize[0];

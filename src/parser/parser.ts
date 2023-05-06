@@ -38,36 +38,41 @@ export class Parser {
   constructor(sources: Source[]) {
     this.sources = sources;
     for (const source of this.sources) {
-      this.sources.find((value, index) => {
-        if (value.name == source.name) {
-          this.currentSourceIndex = index;
-          return;
-        }
-      });
-
-      const tokenizer = source.tokenizer;
-
-      let currentToken: string | null = "";
-      while (true) {
-        currentToken = tokenizer.seeToken();
-
-        if (currentToken == "include") {
-          const includeDecl = this.parseIncludeDeclaration(source);
-          source.stmts.push(includeDecl);
-        } else if (currentToken == "struct") {
-          source.stmts.push(this.parseStructDeclaration(source)!);
-        } else if (currentToken == "enum") {
-          source.stmts.push(this.parseEnumDeclaration(source)!);
-        } else if (currentToken?.startsWith("//")) {
-          source.stmts.push(new CommentStatement(currentToken.slice(2), "single"));
-          source.tokenizer.getToken();
-        } else {
-          break;
-        }
-      }
+      this.parseSource(source);
     }
   }
 
+  parseSource(source: Source) {
+    if (source.parsed) return;
+    this.sources.find((value, index) => {
+      if (value.name == source.name) {
+        this.currentSourceIndex = index;
+        return;
+      }
+    });
+
+    const tokenizer = source.tokenizer;
+
+    let currentToken: string | null = "";
+    while (true) {
+      currentToken = tokenizer.seeToken();
+
+      if (currentToken == "include") {
+        const includeDecl = this.parseIncludeDeclaration(source);
+        source.stmts.push(includeDecl);
+      } else if (currentToken == "struct") {
+        source.stmts.push(this.parseStructDeclaration(source)!);
+      } else if (currentToken == "enum") {
+        source.stmts.push(this.parseEnumDeclaration(source)!);
+      } else if (currentToken?.startsWith("//")) {
+        source.stmts.push(new CommentStatement(currentToken.slice(2), "single"));
+        source.tokenizer.getToken();
+      } else {
+        break;
+      }
+    }
+    source.parsed = true;
+  }
   parseIncludeDeclaration(source: Source): IncludeDeclaration {
     const tokenizer = source.tokenizer;
     const includeDecl = new IncludeDeclaration();
@@ -93,9 +98,15 @@ export class Parser {
       if (!newSource) throw new Error("Could not find source that was specified in the includes declaration");
 
       // Parse the included file and add the exported members to the source's statements
-  
-      includeDecl.included = newSource.stmts;
 
+      if (!newSource.parsed) {
+        this.parseSource(newSource);
+      }
+      
+      includeDecl.included = newSource.stmts;
+      for (const stmt of newSource.stmts) {
+        if (stmt instanceof StructDeclaration || stmt instanceof EnumDeclaration) source.scope.addElement(new ScopeElement(stmt.name.value, stmt));
+      }
       return includeDecl;
     }
 

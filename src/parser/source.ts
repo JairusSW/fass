@@ -8,6 +8,7 @@ export class Source {
     public tokenizer!: Tokenizer;
     public stmts: Statement[] = [];
     public scope: Scope = new Scope();
+    public parsed: boolean = false;
     constructor(name: string, text: string) {
         this.name = name;
         this.text = text;

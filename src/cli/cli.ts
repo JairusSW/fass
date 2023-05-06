@@ -24,12 +24,12 @@ for (const file of sourceFiles) {
 
 const parser = new Parser(sources);
 
-for (const source of parser.sources) {
-    let generator = new AssemblyScriptGenerator(source, true);
-    if (currentLanguage == "typescript") {
-        generator = new TypeScriptGenerator(source, true);
-    }
-    const text = generator.generate();
+//for (const source of parser.sources) {
+    let generator = new AssemblyScriptGenerator(parser.sources, true);
+    /*if (currentLanguage == "typescript") {
+        generator = new TypeScriptGenerator(parser.sources, true);
+    }*/
+    const text = generator.generate(parser.sources.find(v => v.name == "Player.fass")!);
 
-    fs.writeFileSync(outputPath + source.name.replace(".fass", ".ts"), text);
-}
+fs.writeFileSync(outputPath + parser.sources.find(v => v.name == "Player.fass")!.name.replace(".fass", ".ts"), text);
+//}
