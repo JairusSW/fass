@@ -132,9 +132,9 @@ export class Generator {
                     // We have a set-length string
                     if (baseType == "char") {
                         let length = parseInt(innerExpression);
+                        serialize = [`String.UTF8.encodeUnsafe(changetype<usize>(input.${accessor}), ${length}, changetype<usize>(output) + <usize>${offset});`];
+                        deserialize = [`output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input) + <usize>${offset}, ${length});`];
                         offset += length;
-                        serialize = [`String.UTF8.encodeUnsafe(changetype<usize>(input.${accessor}), ${length}, changetype<usize>(output));`];
-                        deserialize = [`output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input), ${length});`];
                         return { serialize, deserialize, offset };
                     }
                 }
@@ -147,11 +147,11 @@ export class Generator {
                 return { serialize, deserialize, offset };
             } else if (scopeElement.node instanceof StructDeclaration && scopeElement.name == type) {
                 for (const memberStmt of scopeElement.node.members) {
+                    const oldOffset = offset;
                     const generated = this.generateStructMember(memberStmt, [accessor], offset);
                     serialize.push(...generated.serialize);
                     deserialize.push(...generated.deserialize);
-                    console.log(generated.serialize);
-                    console.log(generated.deserialize);
+                    offset += generated.offset - oldOffset;
                 }
                 return { serialize, deserialize, offset };
             }
@@ -185,15 +185,16 @@ export class Generator {
         let size = `public __FASS_SIZE: u32 = `;
 
         let offset = 0;
-        console.log(this.source.scope.elements)
         // STAGE: Import and cache
         let members = decl.members;
         for (let i = 0; i < decl.members.length; i++) {
             const member = members[i];
-            const generated = this.generateStructMember(member, [], offset);
+            const oldOffset = offset;
+            const generated = this.generateStructMember(member, [], oldOffset);
             serialize.push(...generated.serialize);
             deserialize.push(...generated.deserialize);
-            offset += generated.offset;
+            console.log(oldOffset, generated.offset)
+            offset += generated.offset - oldOffset;
         }
 
         txt += "\n    " + (size += offset + ";");

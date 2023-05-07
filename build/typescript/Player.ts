@@ -10,7 +10,7 @@ export class Player {
     movement!: Movement;
     data!: Array<number>;
     public __FASS_SIZE: number = 17;
-    public __FASS_SERIALIZE(output: DataView, input: Player): void {
+     __FASS_SERIALIZE(output: DataView, input: Player): void {
         output.setUint8(0, Number(input.active));
         // STRINGS NOT SUPPORTED YET
         output.setBigUint64(9, input.id, true);
