@@ -1,6 +1,5 @@
-// This is a Single Line comment!
 struct Vec3 {
-    quad: Quadrant
+    //quad: Quadrant
     x: f32
     y: f32
     z: f32

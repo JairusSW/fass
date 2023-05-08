@@ -136,6 +136,14 @@ export class Generator {
                         deserialize = [`output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input) + <usize>${offset}, ${length});`];
                         offset += length;
                         return { serialize, deserialize, offset };
+                    } else if (baseType === "u8") {
+                        let length = parseInt(innerExpression);
+                        if (length === 4) {
+                            serialize = [`store<u32>(changetype<usize>(output), load<u32>(changetype<usize>(input.${accessor})), ${offset});`];
+                            deserialize = [`store<u32>(changetype<usize>(output.${accessor}), load<u32>(changetype<usize>(input), ${offset}));`];
+                            offset += length;
+                            return { serialize, deserialize, offset };
+                        }
                     }
                 }
             }
@@ -159,7 +167,7 @@ export class Generator {
         return {
             serialize: [],
             deserialize: [],
-            offset: -1
+            offset: offset
         }
     }
     generateStaticStruct(decl: StructDeclaration): string {
@@ -193,7 +201,6 @@ export class Generator {
             const generated = this.generateStructMember(member, [], oldOffset);
             serialize.push(...generated.serialize);
             deserialize.push(...generated.deserialize);
-            console.log(oldOffset, generated.offset)
             offset += generated.offset - oldOffset;
         }
 

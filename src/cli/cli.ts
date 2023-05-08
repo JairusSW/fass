@@ -1,3 +1,4 @@
+// Going to use like Yargs or Commander for this later on...
 import * as fs from "fs";
 import * as path from "path";
 import { Source } from "../parser/source";
@@ -5,15 +6,29 @@ import { Parser } from "../parser/parser";
 import { Generator as AssemblyScriptGenerator } from "../generator/assemblyscript/generator";
 import { Generator as TypeScriptGenerator } from "../generator/typescript/generator";
 
+let args = process.argv.slice(3);
+
+const options = [];
+for (const arg of args) {
+    if (arg[0] == "-") {
+        options.push(arg);
+        if (arg != "-o") args.splice(args.indexOf(arg), 1);
+    }
+}
+
 let currentLanguage = "";
-if (process.argv.includes("--assemblyscript")) {
+if (options.includes("--assemblyscript")) {
     currentLanguage = "assemblyscript";
 } else if (process.argv.includes("--typescript")) {
     currentLanguage = "typescript";
 }
 
-const inputPath = path.join(process.cwd(), "./schemas/");
-const outputPath = path.join(process.cwd(), `./build/${currentLanguage}/`);
+const outputFolder = args.splice(args.indexOf("-o"), 2)[1];
+const inputFolder = args[0];
+args = process.argv.slice(3);
+
+const inputPath = path.join(process.cwd(), `${inputFolder}/`);
+const outputPath = path.join(process.cwd(), `${outputFolder}/${currentLanguage}/`);
 
 const sourceFiles = fs.readdirSync(inputPath).filter(file => file.endsWith(".fass"));
 const sources: Source[] = [];
@@ -24,12 +39,12 @@ for (const file of sourceFiles) {
 
 const parser = new Parser(sources);
 
-//for (const source of parser.sources) {
+for (const source of parser.sources) {
     let generator = new AssemblyScriptGenerator(parser.sources, true);
     /*if (currentLanguage == "typescript") {
         generator = new TypeScriptGenerator(parser.sources, true);
     }*/
-    const text = generator.generate(parser.sources.find(v => v.name == "Player.fass")!);
+    const text = generator.generate(source);
 
-fs.writeFileSync(outputPath + parser.sources.find(v => v.name == "Player.fass")!.name.replace(".fass", ".ts"), text);
-//}
+fs.writeFileSync(outputPath + source.name.replace(".fass", ".ts"), text);
+}

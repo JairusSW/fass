@@ -7,5 +7,5 @@ struct Player {
     id: u64
     pos: Vec3
     movement: Movement
-    data: u8[5]
+    data: u8[4]
 }

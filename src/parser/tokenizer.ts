@@ -33,11 +33,14 @@ export class Tokenizer {
 
     getAllTokens(): string[] {
         const tokens: string[] = [];
+        const currentTokenIndex = this.currentTokenIndex;
         this.currentToken = this.getNextToken();
         while (this.currentToken) {
             tokens.push(this.currentToken.value);
             this.currentToken = this.getNextToken();
         }
+        this.currentToken = null;
+        this.currentTokenIndex = currentTokenIndex;
         return tokens;
     }
 
@@ -48,13 +51,10 @@ export class Tokenizer {
         const match = tokenRegExp.exec(text);
         if (match) {
             const value = match[0];
-            if (value == "//") {
+            if (value.startsWith("//")) {
                 const comment = text.slice(match.index, text.indexOf("\n", match.index));
-                this.currentTokenIndex = match.index + comment.length + this.currentTokenIndex
-                return {
-                    value: comment,
-                    index: this.currentTokenIndex
-                }
+                this.currentTokenIndex = match.index + comment.length + this.currentTokenIndex;
+                return this.getNextToken();
             }
             let index = match.index + this.currentTokenIndex;
             this.currentTokenIndex = index + value.length;

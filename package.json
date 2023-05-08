@@ -4,8 +4,9 @@
   "description": "",
   "contributors": [],
   "license": "MIT",
+  "bin": "",
   "scripts": {
-    "build:assemblyscript": "ts-node src/cli/cli.ts --assemblyscript",
+    "build:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./build",
     "build:typescript": "ts-node src/cli/cli.ts --typescript"
   },
   "devDependencies": {
