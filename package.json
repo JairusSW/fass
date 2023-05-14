@@ -5,8 +5,7 @@
   "contributors": [],
   "license": "MIT",
   "scripts": {
-    "build:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./build",
-    "build:typescript": "ts-node src/cli/cli.ts --typescript"
+    "build:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./examples"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",

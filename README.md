@@ -18,6 +18,12 @@ FASS is a lightweight serialization format meant to efficiently store complex da
 - It is much more performant than [JSON](https://www.json.org/json-en.html) because it takes advantage of the strongly typed schema driven nature to produce much more compact stripped down binary buffers, at the cost of being less dynamic (FASS is not a direct replacement or competitor for JSON).
   
 - P.S. Need to compare stuff when FASS has a MVP.
+
+## Codegen
+
+Take a look at the current codegen in https://github.com/JairusSW/fass/tree/masterexamples
+
+AssemblyScript is supported, and TypeScript development is on pause for now.
 ## Types
 
 **Primitive Types**
