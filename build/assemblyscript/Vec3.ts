@@ -1,7 +1,12 @@
 export class Vec3 {
-    x!: f32;
-    y!: f32;
-    z!: f32;
+    public x: f32;
+    public y: f32;
+    public z: f32;
+    constructor(x: f32, y: f32, z: f32) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
     public __FASS_SIZE: u32 = 12;
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
         store<f32>(changetype<usize>(output), input.x, 0);

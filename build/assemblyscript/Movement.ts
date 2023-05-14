@@ -1,7 +1,12 @@
 export class Movement {
-    moving!: bool;
-    speed!: f32;
-    direction!: Direction;
+    public moving: bool;
+    public speed: f32;
+    public direction: Direction;
+    constructor(moving: bool, speed: f32, direction: Direction) {
+        this.moving = moving;
+        this.speed = speed;
+        this.direction = direction;
+    }
     public __FASS_SIZE: u32 = 17;
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Movement): void {
         store<bool>(changetype<usize>(output), input.moving, 0);
@@ -20,9 +25,14 @@ export class Movement {
 }
 
 export class Direction {
-    pitch!: f32;
-    yaw!: f32;
-    facing!: f32;
+    public pitch: f32;
+    public yaw: f32;
+    public facing: f32;
+    constructor(pitch: f32, yaw: f32, facing: f32) {
+        this.pitch = pitch;
+        this.yaw = yaw;
+        this.facing = facing;
+    }
     public __FASS_SIZE: u32 = 12;
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Direction): void {
         store<f32>(changetype<usize>(output), input.pitch, 0);

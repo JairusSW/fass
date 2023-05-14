@@ -3,12 +3,20 @@ import { Vec3, Quadrant } from "./Vec3";
 import { Movement, Direction } from "./Movement";
 
 export class Player {
-    active!: bool;
-    name!: string;
-    id!: u64;
-    pos!: Vec3;
-    movement!: Movement;
-    data!: StaticArray<u8>;
+    public active: bool;
+    public name: string;
+    public id: u64;
+    public pos: Vec3;
+    public movement: Movement;
+    public data: StaticArray<u8>;
+    constructor(active: bool, name: string, id: u64, pos: Vec3, movement: Movement, data: StaticArray<u8>) {
+        this.active = active;
+        this.name = name;
+        this.id = id;
+        this.pos = pos;
+        this.movement = movement;
+        this.data = data;
+    }
     public __FASS_SIZE: u32 = 50;
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Player): void {
         store<bool>(changetype<usize>(output), input.active, 0);

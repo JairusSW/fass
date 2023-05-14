@@ -4,7 +4,6 @@ import * as path from "path";
 import { Source } from "../parser/source";
 import { Parser } from "../parser/parser";
 import { Generator as AssemblyScriptGenerator } from "../generator/assemblyscript/generator";
-import { Generator as TypeScriptGenerator } from "../generator/typescript/generator";
 
 let args = process.argv.slice(3);
 
@@ -21,6 +20,9 @@ if (options.includes("--assemblyscript")) {
     currentLanguage = "assemblyscript";
 } else if (process.argv.includes("--typescript")) {
     currentLanguage = "typescript";
+} else {
+    console.log("No language selected!");
+    process.exit(1);
 }
 
 const outputFolder = args.splice(args.indexOf("-o"), 2)[1];

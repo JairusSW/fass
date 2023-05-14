@@ -172,7 +172,7 @@ export class Generator {
     }
     generateStaticStruct(decl: StructDeclaration): string {
         let txt = `export class ${decl.name.value} {`;
-
+        let constr = `\n    constructor(`;
         for (const { name: { value }, type: { text } } of decl.members) {
             let type = text;
             const key = value;
@@ -183,9 +183,12 @@ export class Generator {
                     type = `StaticArray<${type.slice(0, type.indexOf("["))}>`
                 }
             }
-            txt += `\n    ${key}!: ${type};`;
-            //                  ^ Because intellisense hates us
+            txt += `\n    public ${key}: ${type};`;
+            constr += `${key}: ${type}, `;
         }
+
+        constr = constr.slice(0, constr.length - 2) + `) {${decl.members.map(v => `\n        this.${v.name.value} = ${v.name.value};`).join("")}\n    }`
+        txt += constr;
 
         let serialize = [`@inline __FASS_SERIALIZE(output: ArrayBuffer, input: ${decl.name.value}): void {`];
         let deserialize = [`@inline __FASS_DESERIALIZE(input: ArrayBuffer, output: ${decl.name.value}): void {`];
