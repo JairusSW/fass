@@ -21,7 +21,7 @@ FASS is a lightweight serialization format meant to efficiently store complex da
 
 ## Codegen
 
-Take a look at the current codegen in https://github.com/JairusSW/fass/tree/masterexamples
+Take a look at the current codegen in https://github.com/JairusSW/fass/tree/master/examples
 
 AssemblyScript is supported, and TypeScript development is on pause for now.
 ## Types

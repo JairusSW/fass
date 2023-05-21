@@ -30,8 +30,27 @@ const DEFAULTTYPES = [
 
 export class TypeExpression extends Expression {
   public text!: string;
+  public type!: string;
+  public isComplex: boolean = false;
+  public args: string | null = null;
+
   constructor(text?: string) {
     super();
-    if (text) this.text = text!;
+    if (text) {
+      this.text = text;
+      if (this.text.endsWith("]") && this.text.includes("[") && !this.text.startsWith("[")) {
+        this.isComplex = true;
+        const startIndex = this.text.indexOf("[");
+        const endIndex = this.text.indexOf("]");
+        const argsText = this.text.substring(startIndex + 1, endIndex);
+        if (argsText.length > 0) {
+          this.args = argsText;
+        }
+        this.type = this.text.substring(0, startIndex);
+      } else {
+        this.type = this.text;
+      }
+    }
   }
 }
+

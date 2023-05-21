@@ -124,7 +124,7 @@ export class Generator {
             if (type.endsWith("]")) {
                 // We have either a static or dynamic sequence.
                 const baseType = type.slice(0, type.indexOf("["));
-                const innerExpression = type.slice(type.indexOf("[") + 1, type.length - 1);
+                const innerExpression = type.slice(type.indexOf("[") + 1, type.lastIndexOf("]"));
 
                 const isStatic = innerExpression.length ? true : false;
 
@@ -192,8 +192,17 @@ export class Generator {
 
         let serialize = [`@inline __FASS_SERIALIZE(output: ArrayBuffer, input: ${decl.name.value}): void {`];
         let deserialize = [`@inline __FASS_DESERIALIZE(input: ArrayBuffer, output: ${decl.name.value}): void {`];
+        const generatedMembers: {
+            serialize: string[],
+            deserialize: string[],
+            offset: number
+        }[] = [];
+
         // DETECT STATIC STRUCT
-        let size = `public __FASS_SIZE: u32 = `;
+        let sizeText = `public __FASS_SIZE: u32 = `;
+
+        // This is used to count optimizations until like 2 32 bits can be 64.
+        let size = 0;
 
         let offset = 0;
         // STAGE: Import and cache
@@ -202,12 +211,16 @@ export class Generator {
             const member = members[i];
             const oldOffset = offset;
             const generated = this.generateStructMember(member, [], oldOffset);
+            size += generated.offset - oldOffset;
+
+            generatedMembers.push(generated);
+
             serialize.push(...generated.serialize);
             deserialize.push(...generated.deserialize);
             offset += generated.offset - oldOffset;
         }
 
-        txt += "\n    " + (size += offset + ";");
+        txt += "\n    " + (sizeText += offset + ";");
 
         txt += "\n    " + serialize[0];
         for (let i = 1; i < serialize.length; i++) {
