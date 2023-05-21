@@ -18,7 +18,7 @@ export class Scope {
                 };
             });
             if (elementPosition === -1) return null;
-            return this.elements[elementPosition];
+            return element;
         }
         return null;
     }

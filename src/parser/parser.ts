@@ -34,7 +34,6 @@ const SYMBOLS = ["{", "}", ":"];
 
 export class Parser {
   public sources!: Source[];
-  public currentSourceIndex: number = 0;
   constructor(sources: Source[]) {
     this.sources = sources;
     for (const source of this.sources) {
@@ -44,12 +43,6 @@ export class Parser {
 
   parseSource(source: Source) {
     if (source.parsed) return;
-    this.sources.find((value, index) => {
-      if (value.name == source.name) {
-        this.currentSourceIndex = index;
-        return;
-      }
-    });
 
     const tokenizer = source.tokenizer;
 
@@ -152,6 +145,7 @@ export class Parser {
       currentToken = tokenizer.getToken();
       if (!currentToken) throw new Error("Failed to identify token or reached End Of File at \ntoken: " + currentToken + "\npos: " + tokenizer.currentTokenIndex);
       memberStmt.type = new TypeExpression(currentToken);
+      source.usedTypes.push(memberStmt.type);
       structDecl.members.push(memberStmt);
       currentToken = tokenizer.getToken();
     }

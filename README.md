@@ -26,6 +26,7 @@ Take a look at the current codegen in https://github.com/JairusSW/fass/tree/mast
 AssemblyScript is supported, and TypeScript development is on pause for now.
 ## Types
 
+
 **Primitive Types**
 - char
 - u8
@@ -42,10 +43,6 @@ AssemblyScript is supported, and TypeScript development is on pause for now.
 **Structure Types**
 - struct
 - enum
-- array
-- list
-- map
-- custom
 
 ## Schema Format
 

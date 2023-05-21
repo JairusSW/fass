@@ -1,6 +1,6 @@
-import { Vec3, Quadrant } from "./Vec3";
+import { Vec3 } from "./Vec3";
 
-import { Movement, Direction } from "./Movement";
+import { Movement } from "./Movement";
 
 export class Player {
     public active: bool;

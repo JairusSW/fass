@@ -43,7 +43,8 @@ export class Generator {
         const imports: string[] = [];
         for (const stmt of decl.included) {
             const name = getNameOfDecl(stmt);
-            if (name) imports.push(name);
+            console.log(this.source.usedTypes);
+            if (name && this.source.usedTypes.find(v => v.type == name)) imports.push(name);
         }
         return `import { ${imports.join(", ")} } from "./${decl.predicate.slice(1).replace(".fass", "")};`
     }
