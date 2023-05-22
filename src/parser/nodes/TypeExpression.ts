@@ -38,10 +38,14 @@ export class TypeExpression extends Expression {
     super();
     if (text) {
       this.text = text;
-      if (this.text.endsWith("]") && this.text.includes("[") && !this.text.startsWith("[")) {
+      if (
+        this.text.endsWith("]") &&
+        this.text.lastIndexOf("[") > 0 &&
+        !this.text.startsWith("[")
+      ) {
         this.isComplex = true;
-        const startIndex = this.text.indexOf("[");
-        const endIndex = this.text.indexOf("]");
+        const startIndex = this.text.lastIndexOf("[");
+        const endIndex = this.text.lastIndexOf("]");
         const argsText = this.text.substring(startIndex + 1, endIndex);
         if (argsText.length > 0) {
           this.args = argsText;
@@ -53,4 +57,3 @@ export class TypeExpression extends Expression {
     }
   }
 }
-

@@ -3,7 +3,7 @@ include "Movement.fass"
 
 struct Player {
     active: bool
-    name: char[8]
+    name: char[]
     id: u64
     pos: Vec3
     movement: Movement

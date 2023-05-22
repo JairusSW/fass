@@ -20,7 +20,7 @@ export enum TypeID {
   list = 14,
   sequence = 15,
   // Dynamic length
-  array = 16
+  array = 16,
 }
 
 export class ConcreteType {
@@ -28,7 +28,5 @@ export class ConcreteType {
   public name!: string;
   public primitive!: boolean;
   public reference!: Statement;
-  constructor(name: string, id: number, reference?: Statement) {
-    
-  }
+  constructor(name: string, id: number, reference?: Statement) {}
 }

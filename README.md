@@ -7,6 +7,7 @@ FASS is a schema-driven serialization format designed for minimal overhead, high
 FASS is a lightweight serialization format meant to efficiently store complex data structures into a comprehensive binary form. Designed for minimal overhead, FASS compiles down to a few memory loads and stores without any need for parsing in order to achieve its blazing fast speed. Because of its ordered structure sequence, it eliminates the need for key storage and computation, bringing a considerable size difference.
 
 ## Features
+
 - Schema Driven: FASS uses its own schema format and compiler to generate and optimize complex structures in any supported language.
 - User Defined Types: FASS allows the user to define up to 200 custom data types.
 - Read Without Parsing: FASS eliminates the need for a parser allowing the user to access any section of data without the need to parse first.
@@ -16,7 +17,6 @@ FASS is a lightweight serialization format meant to efficiently store complex da
 - The FASS `struct` type is inspired by [Apache Avro](https://avro.apache.org/)'s binary format and eliminates the need for keys.
 - Similar to [FlatBuffers](https://github.com/google/flatbuffers), FASS implements per-key serialization and deserialization, but experiences less overhead due to its optimizing code generator.
 - It is much more performant than [JSON](https://www.json.org/json-en.html) because it takes advantage of the strongly typed schema driven nature to produce much more compact stripped down binary buffers, at the cost of being less dynamic (FASS is not a direct replacement or competitor for JSON).
-  
 - P.S. Need to compare stuff when FASS has a MVP.
 
 ## Codegen
@@ -24,10 +24,11 @@ FASS is a lightweight serialization format meant to efficiently store complex da
 Take a look at the current codegen in https://github.com/JairusSW/fass/tree/master/examples
 
 AssemblyScript is supported, and TypeScript development is on pause for now.
+
 ## Types
 
-
 **Primitive Types**
+
 - char
 - u8
 - i8
@@ -41,6 +42,7 @@ AssemblyScript is supported, and TypeScript development is on pause for now.
 - f64
 
 **Structure Types**
+
 - struct
 - enum
 
@@ -50,7 +52,7 @@ FASS Schemas are designed to be readable and minimal.
 
 A basic example of 3D Vector representation.
 
-*Vec3.fass*
+_Vec3.fass_
 
 ```
 struct Vec3 {
@@ -62,7 +64,7 @@ struct Vec3 {
 
 Example of a complex data structure.
 
-*Player.fass*
+_Player.fass_
 
 ```
 include "./Vec3.fass"
