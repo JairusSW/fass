@@ -224,7 +224,6 @@ export class Parser {
   }
   parseEnumDeclaration(source: Source): EnumDeclaration {
     const tokenizer = source.tokenizer;
-    const enumDecl = new EnumDeclaration();
     let currentToken: string | null = "";
 
     currentToken = tokenizer.getToken();
@@ -250,8 +249,8 @@ export class Parser {
         "Expected to find name of enum, but found " + currentToken + " instead."
       );
 
-    enumDecl.name = new IdentifierExpression(name);
-
+    const enumName = new IdentifierExpression(name);
+    let enumMembers: EnumMemberStatement[] = [];
     currentToken = tokenizer.getToken();
     if (!currentToken)
       throw new Error(
@@ -289,7 +288,7 @@ export class Parser {
       if (currentToken == "=") {
         currentToken = tokenizer.getToken();
         memberStmt.value = new IntegerLiteral(currentToken!);
-        enumDecl.members.push(memberStmt);
+        enumMembers.push(memberStmt);
       } else {
         tokenizer.currentTokenIndex = pos;
         currentToken = oldToken.value;
@@ -297,6 +296,7 @@ export class Parser {
       }
       currentToken = tokenizer.getToken();
     }
+    const enumDecl = new EnumDeclaration(enumName, enumMembers);
     // Add to scope
     source.scope.addElement(new ScopeElement(enumDecl.name.value, enumDecl));
     return enumDecl;

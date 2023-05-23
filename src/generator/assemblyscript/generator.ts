@@ -6,6 +6,7 @@ import {
     StructDeclaration,
 } from "../../parser/nodes";
 import { Source } from "../../parser/source";
+import { sizeOfType } from "../util";
 
 enum Offsets {
     u8 = 1,
@@ -233,12 +234,12 @@ export class Generator {
                 scopeElement.name == typeText
             ) {
                 serialize = [
-                    `store<u8>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
+                    `store<u${sizeOfType(scopeElement.node.storageType) * 8}>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
                 ];
                 deserialize = [
-                    `output.${accessor} = load<u8>(changetype<usize>(input), ${offset}${shift});`,
+                    `output.${accessor} = load<u${sizeOfType(scopeElement.node.storageType) * 8}>(changetype<usize>(input), ${offset}${shift});`,
                 ];
-                offset += 1;
+                offset += sizeOfType(scopeElement.node.storageType) * 8;
                 return { serialize, deserialize, offset };
             } else if (
                 scopeElement.node instanceof StructDeclaration &&
