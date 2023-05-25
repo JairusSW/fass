@@ -78,8 +78,8 @@ export class Parser {
     if (currentToken != "include")
       throw new Error(
         "Could not parse IncludesDeclaration because it starts with the token " +
-        currentToken +
-        '. Expected "include".'
+          currentToken +
+          '. Expected "include".'
       );
 
     // Get the path to the included file
@@ -87,9 +87,9 @@ export class Parser {
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
 
     // Set the predicate of the IncludeDeclaration to the path
@@ -141,24 +141,24 @@ export class Parser {
     if (currentToken != "struct")
       throw new Error(
         "Could not parse StructDeclaration because it starts with the token " +
-        currentToken +
-        '. Expected "struct".'
+          currentToken +
+          '. Expected "struct".'
       );
     currentToken = tokenizer.getToken();
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
 
     const name = currentToken;
     if (KEYWORDS.includes(currentToken) || SYMBOLS.includes(currentToken))
       throw new Error(
         "Expected to find name of struct, but found " +
-        currentToken +
-        " instead."
+          currentToken +
+          " instead."
       );
 
     structDecl.name = new IdentifierExpression(name);
@@ -167,24 +167,24 @@ export class Parser {
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
     if (currentToken != "{")
       throw new Error(
         "Expected to find opening brace {, but found " +
-        currentToken +
-        " instead."
+          currentToken +
+          " instead."
       );
 
     currentToken = tokenizer.getToken();
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
     // Iterate over members
     while (true) {
@@ -195,9 +195,9 @@ export class Parser {
       if (!currentToken)
         throw new Error(
           "Failed to identify token or reached End Of File at \ntoken: " +
-          currentToken +
-          "\npos: " +
-          tokenizer.currentTokenIndex
+            currentToken +
+            "\npos: " +
+            tokenizer.currentTokenIndex
         );
 
       if (currentToken != ":") break;
@@ -206,9 +206,9 @@ export class Parser {
       if (!currentToken)
         throw new Error(
           "Failed to identify token or reached End Of File at \ntoken: " +
-          currentToken +
-          "\npos: " +
-          tokenizer.currentTokenIndex
+            currentToken +
+            "\npos: " +
+            tokenizer.currentTokenIndex
         );
       memberStmt.type = new TypeExpression(currentToken);
       source.usedTypes.push(memberStmt.type);
@@ -230,17 +230,17 @@ export class Parser {
     if (currentToken != "enum")
       throw new Error(
         "Could not parse EnumDeclaration because it starts with the token " +
-        currentToken +
-        '. Expected "enum".'
+          currentToken +
+          '. Expected "enum".'
       );
 
     currentToken = tokenizer.getToken();
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
 
     const name = currentToken;
@@ -255,24 +255,24 @@ export class Parser {
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
     if (currentToken != "{")
       throw new Error(
         "Expected to find opening brace {, but found " +
-        currentToken +
-        " instead."
+          currentToken +
+          " instead."
       );
 
     currentToken = tokenizer.getToken();
     if (!currentToken)
       throw new Error(
         "Failed to identify token or reached End Of File at \ntoken: " +
-        currentToken +
-        "\npos: " +
-        tokenizer.currentTokenIndex
+          currentToken +
+          "\npos: " +
+          tokenizer.currentTokenIndex
       );
     // Iterate over members
     while (true) {

@@ -241,8 +241,9 @@ export class Generator {
   generateEnum(decl: EnumDeclaration): string {
     let txt = `export enum ${decl.name.value} {`;
     for (const member of decl.members) {
-      txt += `\n    ${member.name.value}${member.value ? ` = ${member.value.value}` : ""
-        },`;
+      txt += `\n    ${member.name.value}${
+        member.value ? ` = ${member.value.value}` : ""
+      },`;
     }
     if (txt.endsWith(",")) txt = txt.slice(0, txt.length - 1);
     txt += "\n}";

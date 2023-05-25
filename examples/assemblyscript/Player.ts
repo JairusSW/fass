@@ -48,6 +48,5 @@ export class Player {
         output.movement.direction.yaw = load<f32>(changetype<usize>(input), 40);
         output.movement.direction.facing = load<f32>(changetype<usize>(input), 44);
         store<u32>(changetype<usize>(output.data), load<u32>(changetype<usize>(input), 48));
-        undefined
     }
 }
