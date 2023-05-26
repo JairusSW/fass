@@ -39,7 +39,7 @@ export class Generator {
       } else if (decl instanceof EnumDeclaration) {
         this.text += this.generateEnum(decl) + "\n\n";
       } else if (decl instanceof IncludeDeclaration) {
-        this.text += this.generateIncludeDecl(decl) + "\n\n";
+        this.text += this.generateIncludeDecl(decl) + "\n";
       } else if (decl instanceof CommentStatement && this.debug) {
         this.text += "//" + decl.text + "\n";
       }
@@ -60,13 +60,14 @@ export class Generator {
   generateStructMember(
     member: MemberStatement,
     accessors: string[],
-    offset: number
+    offset: number,
+    shift: string = ""
   ): {
     serialize: string[];
     deserialize: string[];
     offset: number;
+    shift: string;
   } {
-    let shift = "";
     const type = member.type;
     const typeText = member.type.text;
     const name = member.name.value;
@@ -89,7 +90,7 @@ export class Generator {
           `output.${accessor} = load<bool>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 1;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "u8" || typeText == "char") {
         serialize = [
           `store<u8>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -98,7 +99,7 @@ export class Generator {
           `output.${accessor} = load<u8>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 1;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "i8") {
         serialize = [
           `store<i8>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -107,7 +108,7 @@ export class Generator {
           `output.${accessor} = load<i8>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 1;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "u16") {
         serialize = [
           `store<u16>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -116,7 +117,7 @@ export class Generator {
           `output.${accessor} = load<u16>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 2;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "i16") {
         serialize = [
           `store<i16>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -125,7 +126,7 @@ export class Generator {
           `output.${accessor} = load<i16>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 2;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "u32") {
         serialize = [
           `store<u32>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -134,7 +135,7 @@ export class Generator {
           `output.${accessor} = load<u32>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 4;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "i32") {
         serialize = [
           `store<i32>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -143,7 +144,7 @@ export class Generator {
           `output.${accessor} = load<i32>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 4;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "u64") {
         serialize = [
           `store<u64>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -152,7 +153,7 @@ export class Generator {
           `output.${accessor} = load<u64>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 8;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "i64") {
         serialize = [
           `store<i64>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -161,7 +162,7 @@ export class Generator {
           `output.${accessor} = load<i64>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 8;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       }
       // FLOAT
       else if (typeText === "f32") {
@@ -172,7 +173,7 @@ export class Generator {
           `output.${accessor} = load<f32>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 4;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (typeText === "f64") {
         serialize = [
           `store<f64>(changetype<usize>(output), input.${accessor}, ${offset}${shift});`,
@@ -181,7 +182,7 @@ export class Generator {
           `output.${accessor} = load<f64>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += 8;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       }
 
       if (type.isComplex) {
@@ -196,7 +197,7 @@ export class Generator {
               `output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input) + <usize>${offset}${shift}, input.${accessor}.length);`,
             ];
             offset += parseInt(type.args);
-            return { serialize, deserialize, offset };
+            return { serialize, deserialize, offset, shift };
           } else if (type.type === "u8") {
             // Set length arrays
             let length = parseInt(type.args);
@@ -208,7 +209,7 @@ export class Generator {
                 `store<u32>(changetype<usize>(output.${accessor}), load<u32>(changetype<usize>(input), ${offset}${shift}));`,
               ];
               offset += length;
-              return { serialize, deserialize, offset };
+              return { serialize, deserialize, offset, shift };
             }
           }
         } else {
@@ -222,7 +223,7 @@ export class Generator {
             ];
             offset += 2;
             shift += ` + <usize>input.${accessor}.length`;
-            return { serialize, deserialize, offset };
+            return { serialize, deserialize, offset, shift };
           } else {
             // Handle normal arrays here
           }
@@ -244,7 +245,7 @@ export class Generator {
           }>(changetype<usize>(input), ${offset}${shift});`,
         ];
         offset += sizeOfType(scopeElement.node.storageType) * 8;
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       } else if (
         scopeElement.node instanceof StructDeclaration &&
         scopeElement.name == typeText
@@ -260,13 +261,14 @@ export class Generator {
           deserialize.push(...generated.deserialize);
           offset += generated.offset - oldOffset;
         }
-        return { serialize, deserialize, offset };
+        return { serialize, deserialize, offset, shift };
       }
     }
     return {
       serialize: [],
       deserialize: [],
       offset: offset,
+      shift: shift
     };
   }
   generateStaticStruct(decl: StructDeclaration): string {
@@ -316,14 +318,18 @@ export class Generator {
     // This is used to count optimizations until like 2 32 bits can be 64.
     let size = 0;
 
+    let shift = "";
+
     let offset = 0;
     // STAGE: Import and cache
     let members = decl.members;
     for (let i = 0; i < decl.members.length; i++) {
       const member = members[i];
       const oldOffset = offset;
-      const generated = this.generateStructMember(member, [], oldOffset);
+      const generated = this.generateStructMember(member, [], oldOffset, shift);
 
+      shift = generated.shift.replace("<usize>input", "this!");
+      
       if (!member.type.isComplex) {
         size += generated.offset - oldOffset;
         if (size == 8) {
@@ -339,7 +345,7 @@ export class Generator {
       offset += generated.offset - oldOffset;
     }
 
-    txt += "\n    " + (sizeText += offset + ";");
+    txt += "\n    " + (sizeText += offset + shift + ";");
 
     txt += "\n    " + serialize[0];
     for (let i = 1; i < serialize.length; i++) {
