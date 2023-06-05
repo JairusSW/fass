@@ -187,14 +187,14 @@ export class Generator {
 
       if (type.isComplex) {
         // We have either a static or dynamic sequence.
-        if (type.args?.length) {
+        if (type.args.length && !type.less) {
           // We have a set-length string
           if (type.type == "char") {
             serialize = [
-              `String.UTF8.encodeUnsafe(changetype<usize>(input.${accessor}), input.${accessor}.length, changetype<usize>(output) + <usize>${offset}${shift});`,
+              `String.UTF8.encodeUnsafe(changetype<usize>(input.${accessor}), ${type.args}, changetype<usize>(output) + <usize>${offset}${shift});`,
             ];
             deserialize = [
-              `output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input) + <usize>${offset}${shift}, input.${accessor}.length);`,
+              `output.${accessor} = String.UTF8.decodeUnsafe(changetype<usize>(input) + <usize>${offset}${shift}, ${type.args});`,
             ];
             offset += parseInt(type.args);
             return { serialize, deserialize, offset, shift };
