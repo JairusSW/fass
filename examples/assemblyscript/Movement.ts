@@ -1,3 +1,5 @@
+// @ts-ignore
+@serializable
 export class Movement {
     public moving: bool;
     public speed: f32;
@@ -24,6 +26,8 @@ export class Movement {
     }
 }
 
+// @ts-ignore
+@serializable
 export class Direction {
     public pitch: f32;
     public yaw: f32;

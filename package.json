@@ -5,11 +5,15 @@
   "contributors": [],
   "license": "MIT",
   "scripts": {
-    "build:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./examples"
+    "generate:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./examples",
+    "build:assemblyscript": "asc ./examples/assemblyscript/test/test.ts -o ./examples/assemblyscript/test/test.wasm --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json",
+    "run:assemblyscript": "wasmtime ./examples/assemblyscript/test/test.wasm"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
+    "as-bignum": "^0.2.31",
     "assemblyscript": "^0.27.2",
+    "json-as": "^0.5.9",
     "prettier": "^2.8.7"
   },
   "repository": {

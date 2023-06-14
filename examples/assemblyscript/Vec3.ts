@@ -1,26 +1,28 @@
+// @ts-ignore
+@serializable
 export class Vec3 {
     public quad: Quadrant;
-    public x: f32;
-    public y: f32;
-    public z: f32;
-    constructor(quad: Quadrant, x: f32, y: f32, z: f32) {
+    public x: u8;
+    public y: u8;
+    public z: u8;
+    constructor(quad: Quadrant, x: u8, y: u8, z: u8) {
         this.quad = quad;
         this.x = x;
         this.y = y;
         this.z = z;
     }
-    public __FASS_SIZE: u32 = 20;
+    public __FASS_SIZE: u32 = 4;
     @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
         store<u8>(changetype<usize>(output), input.quad, 0);
-        store<f32>(changetype<usize>(output), input.x, 8);
-        store<f32>(changetype<usize>(output), input.y, 12);
-        store<f32>(changetype<usize>(output), input.z, 16);
+        store<u8>(changetype<usize>(output), input.x, 1);
+        store<u8>(changetype<usize>(output), input.y, 2);
+        store<u8>(changetype<usize>(output), input.z, 3);
     }
     @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Vec3): void {
         output.quad = load<u8>(changetype<usize>(input), 0);
-        output.x = load<f32>(changetype<usize>(input), 8);
-        output.y = load<f32>(changetype<usize>(input), 12);
-        output.z = load<f32>(changetype<usize>(input), 16);
+        output.x = load<u8>(changetype<usize>(input), 1);
+        output.y = load<u8>(changetype<usize>(input), 2);
+        output.z = load<u8>(changetype<usize>(input), 3);
     }
 }
 

@@ -1,8 +1,8 @@
 struct Vec3 {
-    quad: Quadrant
-    x: f32
-    y: f32
-    z: f32
+    //quad: Quadrant
+    x: u8
+    y: u8
+    z: u8
 }
 
 enum Quadrant {

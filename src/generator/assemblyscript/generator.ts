@@ -244,7 +244,7 @@ export class Generator {
             sizeOfType(scopeElement.node.storageType) * 8
           }>(changetype<usize>(input), ${offset}${shift});`,
         ];
-        offset += sizeOfType(scopeElement.node.storageType) * 8;
+        offset += sizeOfType(scopeElement.node.storageType);
         return { serialize, deserialize, offset, shift };
       } else if (
         scopeElement.node instanceof StructDeclaration &&
