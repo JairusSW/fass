@@ -301,10 +301,10 @@ export class Generator {
     txt += constr;
 
     let serialize = [
-      `@inline __FASS_SERIALIZE(output: ArrayBuffer, input: ${decl.name.value}): void {`,
+      `static __FASS_SERIALIZE(output: ArrayBuffer, input: ${decl.name.value}): void {`,
     ];
     let deserialize = [
-      `@inline __FASS_DESERIALIZE(input: ArrayBuffer, output: ${decl.name.value}): void {`,
+      `static __FASS_DESERIALIZE(input: ArrayBuffer, output: ${decl.name.value}): void {`,
     ];
     const generatedMembers: {
       serialize: string[];
@@ -313,7 +313,7 @@ export class Generator {
     }[] = [];
 
     // DETECT STATIC STRUCT
-    let sizeText = `public __FASS_SIZE: u32 = `;
+    let sizeText = `static __FASS_SIZE: u32 = `;
 
     // This is used to count optimizations until like 2 32 bits can be 64.
     let size = 0;

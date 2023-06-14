@@ -1,5 +1,3 @@
-// @ts-ignore
-@serializable
 export class Movement {
     public moving: bool;
     public speed: f32;
@@ -9,15 +7,15 @@ export class Movement {
         this.speed = speed;
         this.direction = direction;
     }
-    public __FASS_SIZE: u32 = 17;
-    @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Movement): void {
+    static __FASS_SIZE: u32 = 17;
+    static __FASS_SERIALIZE(output: ArrayBuffer, input: Movement): void {
         store<bool>(changetype<usize>(output), input.moving, 0);
         store<f32>(changetype<usize>(output), input.speed, 1);
         store<f32>(changetype<usize>(output), input.direction.pitch, 5);
         store<f32>(changetype<usize>(output), input.direction.yaw, 9);
         store<f32>(changetype<usize>(output), input.direction.facing, 13);
     }
-    @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Movement): void {
+    static __FASS_DESERIALIZE(input: ArrayBuffer, output: Movement): void {
         output.moving = load<bool>(changetype<usize>(input), 0);
         output.speed = load<f32>(changetype<usize>(input), 1);
         output.direction.pitch = load<f32>(changetype<usize>(input), 5);
@@ -26,8 +24,6 @@ export class Movement {
     }
 }
 
-// @ts-ignore
-@serializable
 export class Direction {
     public pitch: f32;
     public yaw: f32;
@@ -37,13 +33,13 @@ export class Direction {
         this.yaw = yaw;
         this.facing = facing;
     }
-    public __FASS_SIZE: u32 = 12;
-    @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Direction): void {
+    static __FASS_SIZE: u32 = 12;
+    static __FASS_SERIALIZE(output: ArrayBuffer, input: Direction): void {
         store<f32>(changetype<usize>(output), input.pitch, 0);
         store<f32>(changetype<usize>(output), input.yaw, 4);
         store<f32>(changetype<usize>(output), input.facing, 8);
     }
-    @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Direction): void {
+    static __FASS_DESERIALIZE(input: ArrayBuffer, output: Direction): void {
         output.pitch = load<f32>(changetype<usize>(input), 0);
         output.yaw = load<f32>(changetype<usize>(input), 4);
         output.facing = load<f32>(changetype<usize>(input), 8);

@@ -1,0 +1,18 @@
+{
+    "targets": {
+        "test": {
+            "outFile": "examples/assemblyscript/test/test.wasm",
+            "sourceMap": false,
+            "optimizeLevel": 0,
+            "shrinkLevel": 0,
+            "converge": false,
+            "noAssert": false
+        }
+    },
+    "options": {
+        "transform": [],
+        "bindings": "esm",
+        "exportStart": "_start"
+    },
+    "extends": "./node_modules/@assemblyscript/wasi-shim/asconfig.json"
+}

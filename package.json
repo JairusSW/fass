@@ -6,14 +6,15 @@
   "license": "MIT",
   "scripts": {
     "generate:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./examples",
-    "build:assemblyscript": "asc ./examples/assemblyscript/test/test.ts -o ./examples/assemblyscript/test/test.wasm --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json",
+    "build:assemblyscript": "asc examples/assemblyscript/test/test.ts --target test",
     "run:assemblyscript": "wasmtime ./examples/assemblyscript/test/test.wasm"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
+    "@assemblyscript/wasi-shim": "^0.1.0",
+    "@types/node": "^20.3.1",
     "as-bignum": "^0.2.31",
-    "assemblyscript": "^0.27.2",
-    "json-as": "^0.5.9",
+    "assemblyscript": "^0.27.5",
+    "json-as": "^0.5.37",
     "prettier": "^2.8.7"
   },
   "repository": {
