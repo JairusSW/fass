@@ -1,55 +1,47 @@
-import { Vec3, Quadrant } from "./Vec3";
-
-import { Movement, Direction } from "./Movement";
-
+import { Vec3 } from "./Vec3";
+import { Movement } from "./Movement";
 export class Player {
-  active!: bool;
-  name!: string;
-  id!: u64;
-  pos!: Vec3;
-  movement!: Movement;
-  data!: StaticArray<u8>;
-  public __FASS_SIZE: u32 = 50;
-  @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Player): void {
-    store<bool>(changetype<usize>(output), input.active, 0);
-    String.UTF8.encodeUnsafe(
-      changetype<usize>(input.name),
-      8,
-      changetype<usize>(output) + <usize>1
-    );
-    store<u64>(changetype<usize>(output), input.id, 9);
-    store<f32>(changetype<usize>(output), input.pos.x, 17);
-    store<f32>(changetype<usize>(output), input.pos.y, 21);
-    store<f32>(changetype<usize>(output), input.pos.z, 25);
-    store<bool>(changetype<usize>(output), input.movement.moving, 29);
-    store<f32>(changetype<usize>(output), input.movement.speed, 30);
-    store<f32>(changetype<usize>(output), input.movement.direction.pitch, 34);
-    store<f32>(changetype<usize>(output), input.movement.direction.yaw, 38);
-    store<f32>(changetype<usize>(output), input.movement.direction.facing, 42);
-    store<u32>(
-      changetype<usize>(output),
-      load<u32>(changetype<usize>(input.data)),
-      46
-    );
-  }
-  @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Player): void {
-    output.active = load<bool>(changetype<usize>(input), 0);
-    output.name = String.UTF8.decodeUnsafe(
-      changetype<usize>(input) + <usize>1,
-      8
-    );
-    output.id = load<u64>(changetype<usize>(input), 9);
-    output.pos.x = load<f32>(changetype<usize>(input), 17);
-    output.pos.y = load<f32>(changetype<usize>(input), 21);
-    output.pos.z = load<f32>(changetype<usize>(input), 25);
-    output.movement.moving = load<bool>(changetype<usize>(input), 29);
-    output.movement.speed = load<f32>(changetype<usize>(input), 30);
-    output.movement.direction.pitch = load<f32>(changetype<usize>(input), 34);
-    output.movement.direction.yaw = load<f32>(changetype<usize>(input), 38);
-    output.movement.direction.facing = load<f32>(changetype<usize>(input), 42);
-    store<u32>(
-      changetype<usize>(output.data),
-      load<u32>(changetype<usize>(input), 46)
-    );
-  }
+    public active: bool;
+    public name: string;
+    public id: u64;
+    public pos: Vec3;
+    public movement: Movement;
+    public data: Array<u8>;
+    constructor(active: bool, name: string, id: u64, pos: Vec3, movement: Movement, data: Array<u8>) {
+        this.active = active;
+        this.name = name;
+        this.id = id;
+        this.pos = pos;
+        this.movement = movement;
+        this.data = data;
+    }
+    static __FASS_SIZE: number = 41;
+    static __FASS_SERIALIZE(output: DataView, input: Player): void {
+        output.setUint8(0, Number(input.active));
+        String.UTF8.encodeUnsafe(changetype<usize>(input.name), 8, changetype<usize>(output) + <usize>1);
+        output.setBigUint64(9, input.id, true);
+        output.setUint8(17, input.pos.x);
+        output.setUint8(18, input.pos.y);
+        output.setUint8(19, input.pos.z);
+        output.setUint8(20, Number(input.movement.moving));
+        output.setFloat32(21, input.movement.speed, true);
+        output.setFloat32(25, input.movement.direction.pitch, true);
+        output.setFloat32(29, input.movement.direction.yaw, true);
+        output.setFloat32(33, input.movement.direction.facing, true);
+        store<u32>(changetype<usize>(output), load<u32>(changetype<usize>(input.data)), 37);
+    }
+    static __FASS_DESERIALIZE(input: DataView, output: Player): void {
+        output.active = Boolean(input.getUint8(0));
+        output.name = String.UTF8.decodeUnsafe(changetype<usize>(input) + <usize>1, 8);
+        output.id = input.getBigUint64(9, true);
+        output.pos.x = input.getUint8(17);
+        output.pos.y = input.getUint8(18);
+        output.pos.z = input.getUint8(19);
+        output.movement.moving = Boolean(input.getUint8(20));
+        output.movement.speed = input.getFloat32(21, true);
+        output.movement.direction.pitch = input.getFloat32(25, true);
+        output.movement.direction.yaw = input.getFloat32(29, true);
+        output.movement.direction.facing = input.getFloat32(33, true);
+        store<u32>(changetype<usize>(output.data), load<u32>(changetype<usize>(input), 37));
+    }
 }

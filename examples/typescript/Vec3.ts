@@ -1,23 +1,28 @@
 export class Vec3 {
-  x!: f32;
-  y!: f32;
-  z!: f32;
-  public __FASS_SIZE: u32 = 12;
-  @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
-    store<f32>(changetype<usize>(output), input.x, 0);
-    store<f32>(changetype<usize>(output), input.y, 4);
-    store<f32>(changetype<usize>(output), input.z, 8);
-  }
-  @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Vec3): void {
-    output.x = load<f32>(changetype<usize>(input), 0);
-    output.y = load<f32>(changetype<usize>(input), 4);
-    output.z = load<f32>(changetype<usize>(input), 8);
-  }
+    public x: u8;
+    public y: u8;
+    public z: u8;
+    constructor(x: u8, y: u8, z: u8) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+    static __FASS_SIZE: number = 3;
+    static __FASS_SERIALIZE(output: DataView, input: Vec3): void {
+        output.setUint8(0, input.x);
+        output.setUint8(1, input.y);
+        output.setUint8(2, input.z);
+    }
+    static __FASS_DESERIALIZE(input: DataView, output: Vec3): void {
+        output.x = input.getUint8(0);
+        output.y = input.getUint8(1);
+        output.z = input.getUint8(2);
+    }
 }
 
 export enum Quadrant {
-  TL = 1,
-  TR = 2,
-  BL = 3,
-  BR = 4,
+    TL = 1,
+    TR = 2,
+    BL = 3,
+    BR = 4
 }

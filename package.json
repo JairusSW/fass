@@ -7,7 +7,10 @@
   "scripts": {
     "generate:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./examples",
     "build:assemblyscript": "asc examples/assemblyscript/test/test.ts --target test",
-    "run:assemblyscript": "wasmtime ./examples/assemblyscript/test/test.wasm"
+    "run:assemblyscript": "wasmtime ./examples/assemblyscript/test/test.wasm",
+    "generate:typescript": "ts-node src/cli/cli.ts build ./schemas --typescript -o ./examples",
+    "build:typescript": "",
+    "run:typescript": "ts-node examples/typescript/test/test.ts"
   },
   "devDependencies": {
     "@assemblyscript/wasi-shim": "^0.1.0",

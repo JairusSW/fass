@@ -2,7 +2,7 @@
     "targets": {
         "test": {
             "outFile": "examples/assemblyscript/test/test.wasm",
-            "sourceMap": false,
+            "sourceMap": "examples/assemblyscript/test/test.wasm.map",
             "optimizeLevel": 0,
             "shrinkLevel": 0,
             "converge": false,

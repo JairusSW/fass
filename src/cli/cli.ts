@@ -4,6 +4,7 @@ import * as path from "path";
 import { Source } from "../parser/source";
 import { Parser } from "../parser/parser";
 import { Generator as AssemblyScriptGenerator } from "../generator/assemblyscript/generator";
+import { Generator as TypeScriptGenerator } from "../generator/typescript/generator";
 
 let args = process.argv.slice(3);
 
@@ -48,9 +49,9 @@ const parser = new Parser(sources);
 
 for (const source of parser.sources) {
   let generator = new AssemblyScriptGenerator(parser.sources, true);
-  /*if (currentLanguage == "typescript") {
+  if (currentLanguage == "typescript") {
         generator = new TypeScriptGenerator(parser.sources, true);
-    }*/
+    }
   const text = generator.generate(source);
 
   fs.writeFileSync(outputPath + source.name.replace(".fass", ".ts"), text);

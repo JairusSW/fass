@@ -1,37 +1,47 @@
 export class Movement {
-  moving!: bool;
-  speed!: f32;
-  direction!: Direction;
-  public __FASS_SIZE: u32 = 17;
-  @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Movement): void {
-    store<bool>(changetype<usize>(output), input.moving, 0);
-    store<f32>(changetype<usize>(output), input.speed, 1);
-    store<f32>(changetype<usize>(output), input.direction.pitch, 5);
-    store<f32>(changetype<usize>(output), input.direction.yaw, 9);
-    store<f32>(changetype<usize>(output), input.direction.facing, 13);
-  }
-  @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Movement): void {
-    output.moving = load<bool>(changetype<usize>(input), 0);
-    output.speed = load<f32>(changetype<usize>(input), 1);
-    output.direction.pitch = load<f32>(changetype<usize>(input), 5);
-    output.direction.yaw = load<f32>(changetype<usize>(input), 9);
-    output.direction.facing = load<f32>(changetype<usize>(input), 13);
-  }
+    public moving: bool;
+    public speed: f32;
+    public direction: Direction;
+    constructor(moving: bool, speed: f32, direction: Direction) {
+        this.moving = moving;
+        this.speed = speed;
+        this.direction = direction;
+    }
+    static __FASS_SIZE: number = 17;
+    static __FASS_SERIALIZE(output: DataView, input: Movement): void {
+        output.setUint8(0, Number(input.moving));
+        output.setFloat32(1, input.speed, true);
+        output.setFloat32(5, input.direction.pitch, true);
+        output.setFloat32(9, input.direction.yaw, true);
+        output.setFloat32(13, input.direction.facing, true);
+    }
+    static __FASS_DESERIALIZE(input: DataView, output: Movement): void {
+        output.moving = Boolean(input.getUint8(0));
+        output.speed = input.getFloat32(1, true);
+        output.direction.pitch = input.getFloat32(5, true);
+        output.direction.yaw = input.getFloat32(9, true);
+        output.direction.facing = input.getFloat32(13, true);
+    }
 }
 
 export class Direction {
-  pitch!: f32;
-  yaw!: f32;
-  facing!: f32;
-  public __FASS_SIZE: u32 = 12;
-  @inline __FASS_SERIALIZE(output: ArrayBuffer, input: Direction): void {
-    store<f32>(changetype<usize>(output), input.pitch, 0);
-    store<f32>(changetype<usize>(output), input.yaw, 4);
-    store<f32>(changetype<usize>(output), input.facing, 8);
-  }
-  @inline __FASS_DESERIALIZE(input: ArrayBuffer, output: Direction): void {
-    output.pitch = load<f32>(changetype<usize>(input), 0);
-    output.yaw = load<f32>(changetype<usize>(input), 4);
-    output.facing = load<f32>(changetype<usize>(input), 8);
-  }
+    public pitch: f32;
+    public yaw: f32;
+    public facing: f32;
+    constructor(pitch: f32, yaw: f32, facing: f32) {
+        this.pitch = pitch;
+        this.yaw = yaw;
+        this.facing = facing;
+    }
+    static __FASS_SIZE: number = 12;
+    static __FASS_SERIALIZE(output: DataView, input: Direction): void {
+        output.setFloat32(0, input.pitch, true);
+        output.setFloat32(4, input.yaw, true);
+        output.setFloat32(8, input.facing, true);
+    }
+    static __FASS_DESERIALIZE(input: DataView, output: Direction): void {
+        output.pitch = input.getFloat32(0, true);
+        output.yaw = input.getFloat32(4, true);
+        output.facing = input.getFloat32(8, true);
+    }
 }
