@@ -1,8 +1,8 @@
 export class Movement {
-    public moving: bool;
-    public speed: f32;
+    public moving: boolean;
+    public speed: number;
     public direction: Direction;
-    constructor(moving: bool, speed: f32, direction: Direction) {
+    constructor(moving: boolean, speed: number, direction: Direction) {
         this.moving = moving;
         this.speed = speed;
         this.direction = direction;
@@ -25,10 +25,10 @@ export class Movement {
 }
 
 export class Direction {
-    public pitch: f32;
-    public yaw: f32;
-    public facing: f32;
-    constructor(pitch: f32, yaw: f32, facing: f32) {
+    public pitch: number;
+    public yaw: number;
+    public facing: number;
+    constructor(pitch: number, yaw: number, facing: number) {
         this.pitch = pitch;
         this.yaw = yaw;
         this.facing = facing;

@@ -1,8 +1,8 @@
 export class Vec3 {
-    public x: u8;
-    public y: u8;
-    public z: u8;
-    constructor(x: u8, y: u8, z: u8) {
+    public x: number;
+    public y: number;
+    public z: number;
+    constructor(x: number, y: number, z: number) {
         this.x = x;
         this.y = y;
         this.z = z;

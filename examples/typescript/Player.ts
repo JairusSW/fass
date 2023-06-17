@@ -1,13 +1,13 @@
 import { Vec3 } from "./Vec3";
 import { Movement } from "./Movement";
 export class Player {
-    public active: bool;
+    public active: boolean;
     public name: string;
-    public id: u64;
+    public id: bigint;
     public pos: Vec3;
     public movement: Movement;
-    public data: Array<u8>;
-    constructor(active: bool, name: string, id: u64, pos: Vec3, movement: Movement, data: Array<u8>) {
+    public data: Array<number>;
+    constructor(active: boolean, name: string, id: bigint, pos: Vec3, movement: Movement, data: Array<number>) {
         this.active = active;
         this.name = name;
         this.id = id;
@@ -18,7 +18,14 @@ export class Player {
     static __FASS_SIZE: number = 41;
     static __FASS_SERIALIZE(output: DataView, input: Player): void {
         output.setUint8(0, Number(input.active));
-        String.UTF8.encodeUnsafe(changetype<usize>(input.name), 8, changetype<usize>(output) + <usize>1);
+        output.setUint8(1, input.name.charCodeAt(0));
+        output.setUint8(2, input.name.charCodeAt(1));
+        output.setUint8(3, input.name.charCodeAt(2));
+        output.setUint8(4, input.name.charCodeAt(3));
+        output.setUint8(5, input.name.charCodeAt(4));
+        output.setUint8(6, input.name.charCodeAt(5));
+        output.setUint8(7, input.name.charCodeAt(6));
+        output.setUint8(8, input.name.charCodeAt(7));
         output.setBigUint64(9, input.id, true);
         output.setUint8(17, input.pos.x);
         output.setUint8(18, input.pos.y);

@@ -285,10 +285,10 @@ export class Generator {
         if (ty.type == "char") {
           type = "string";
         } else if (ty.type == "u8" && ty.args?.length) {
-          type = `Array<${ty.type}>`;
+          type = `Array<${typeToTS(ty.type)}>`;
         }
       }
-      if (!type) type = ty.text;
+      if (!type) type = typeToTS(ty.text);
       txt += `\n    public ${key}: ${type};`;
       constr += `${key}: ${type}, `;
     }
@@ -327,7 +327,6 @@ export class Generator {
       const member = members[i];
       const oldOffset = offset;
       const generated = this.generateStructMember(member, [], oldOffset, shift);
-
       shift = generated.shift.replace("<usize>input", "this!");
       
       if (!member.type.isComplex) {
@@ -385,4 +384,39 @@ function getNameOfDecl<T>(decl: T): string | null {
     return decl.name.value;
   }
   return null;
+}
+
+function typeToTS(type: string): string {
+  switch (type) {
+    case "u8":
+    case "i8":
+    case "u16":
+    case "i16":
+    case "u32":
+    case "i32":
+    case "f32":
+    case "f64": {
+      return "number";
+    }
+    case "u64":
+    case "i64": {
+      return "bigint";
+    }
+    case "bool": {
+      return "boolean";
+    }
+  }
+
+  if (type.includes("[") && type.endsWith("]")) {
+    const startIndex = type.indexOf("[");
+    //const innerType = type.slice(startIndex, type.length - 1);
+    let outerType = type.slice(0, startIndex);
+    if (outerType == "char") {
+      return "string";
+    }
+    outerType = typeToTS(outerType);
+    return `Array<${outerType}>`;
+  }
+
+  return type;
 }
