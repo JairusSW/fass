@@ -92,18 +92,14 @@ export class Generator {
         offset += 1;
         return { serialize, deserialize, offset, shift };
       } else if (typeText === "u8" || typeText == "char") {
-        serialize = [
-          `output.setUint8(${offset}${shift}, input.${accessor});`,
-        ];
+        serialize = [`output.setUint8(${offset}${shift}, input.${accessor});`];
         deserialize = [
           `output.${accessor} = input.getUint8(${offset}${shift});`,
         ];
         offset += 1;
         return { serialize, deserialize, offset, shift };
       } else if (typeText === "i8") {
-        serialize = [
-          `output.setInt8(${offset}${shift}, input.${accessor});`,
-        ];
+        serialize = [`output.setInt8(${offset}${shift}, input.${accessor});`];
         deserialize = [
           `output.${accessor} = input.getInt8(${offset}${shift});`,
         ];
@@ -268,7 +264,7 @@ export class Generator {
       serialize: [],
       deserialize: [],
       offset: offset,
-      shift: shift
+      shift: shift,
     };
   }
   generateStaticStruct(decl: StructDeclaration): string {
@@ -328,7 +324,7 @@ export class Generator {
       const oldOffset = offset;
       const generated = this.generateStructMember(member, [], oldOffset, shift);
       shift = generated.shift.replace("<usize>input", "this!");
-      
+
       if (!member.type.isComplex) {
         size += generated.offset - oldOffset;
         if (size == 8) {

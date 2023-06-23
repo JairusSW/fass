@@ -268,7 +268,7 @@ export class Generator {
       serialize: [],
       deserialize: [],
       offset: offset,
-      shift: shift
+      shift: shift,
     };
   }
   generateStaticStruct(decl: StructDeclaration): string {
@@ -329,7 +329,7 @@ export class Generator {
       const generated = this.generateStructMember(member, [], oldOffset, shift);
 
       shift = generated.shift.replace("<usize>input", "this!");
-      
+
       if (!member.type.isComplex) {
         size += generated.offset - oldOffset;
         if (size == 8) {

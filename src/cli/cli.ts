@@ -50,8 +50,8 @@ const parser = new Parser(sources);
 for (const source of parser.sources) {
   let generator = new AssemblyScriptGenerator(parser.sources, true);
   if (currentLanguage == "typescript") {
-        generator = new TypeScriptGenerator(parser.sources, true);
-    }
+    generator = new TypeScriptGenerator(parser.sources, true);
+  }
   const text = generator.generate(source);
 
   fs.writeFileSync(outputPath + source.name.replace(".fass", ".ts"), text);

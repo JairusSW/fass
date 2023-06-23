@@ -22,16 +22,23 @@ async function instantiate(module, imports = {}) {
   exports._start();
   return exports;
 }
-export const {
-  memory,
-} = await (async url => instantiate(
-  await (async () => {
-    try { return await globalThis.WebAssembly.compileStreaming(globalThis.fetch(url)); }
-    catch { return globalThis.WebAssembly.compile(await (await import("node:fs/promises")).readFile(url)); }
-  })(), {
-    wasi_snapshot_preview1: __maybeDefault(__import0),
-  }
-))(new URL("test.wasm", import.meta.url));
+export const { memory } = await (async (url) =>
+  instantiate(
+    await (async () => {
+      try {
+        return await globalThis.WebAssembly.compileStreaming(
+          globalThis.fetch(url)
+        );
+      } catch {
+        return globalThis.WebAssembly.compile(
+          await (await import("node:fs/promises")).readFile(url)
+        );
+      }
+    })(),
+    {
+      wasi_snapshot_preview1: __maybeDefault(__import0),
+    }
+  ))(new URL("test.wasm", import.meta.url));
 function __maybeDefault(module) {
   return typeof module.default === "object" && Object.keys(module).length == 1
     ? module.default
