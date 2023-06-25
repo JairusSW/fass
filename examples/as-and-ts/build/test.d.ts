@@ -5,4 +5,5 @@ declare namespace __AdaptedExports {
 /** Instantiates the compiled WebAssembly module with the given imports. */
 export declare function instantiate(module: WebAssembly.Module, imports: {
   env: unknown,
+  test: unknown,
 }): Promise<typeof __AdaptedExports>;

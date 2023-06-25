@@ -10,13 +10,16 @@
     "run:assemblyscript": "wasmtime ./examples/assemblyscript/test/test.wasm",
     "generate:typescript": "ts-node src/cli/cli.ts build ./schemas --typescript -o ./examples",
     "build:typescript": "",
-    "run:typescript": "ts-node examples/typescript/test/test.ts"
+    "run:typescript": "ts-node examples/typescript/test/test.ts",
+    "build:as-and-ts": "npx asc examples/as-and-ts/assembly/test.ts --target as-and-ts"
   },
   "devDependencies": {
     "@assemblyscript/wasi-shim": "^0.1.0",
+    "@types/benchmark": "^2.1.2",
     "@types/node": "^20.3.1",
     "as-bignum": "^0.2.31",
     "assemblyscript": "^0.27.5",
+    "benchmark": "^2.1.4",
     "json-as": "^0.5.37",
     "prettier": "^2.8.7"
   },
@@ -33,5 +36,6 @@
   "bugs": {
     "url": "https://github.com/JairusSW/fass/issues"
   },
-  "homepage": "https://github.com/JairusSW/fass#readme"
+  "homepage": "https://github.com/JairusSW/fass#readme",
+  "type": "module"
 }

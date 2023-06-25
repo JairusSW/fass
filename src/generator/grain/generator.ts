@@ -367,38 +367,3 @@ function getNameOfDecl<T>(decl: T): string | null {
   }
   return null;
 }
-
-function typeToTS(type: string): string {
-  switch (type) {
-    case "u8":
-    case "i8":
-    case "u16":
-    case "i16":
-    case "u32":
-    case "i32":
-    case "f32":
-    case "f64": {
-      return "number";
-    }
-    case "u64":
-    case "i64": {
-      return "bigint";
-    }
-    case "bool": {
-      return "boolean";
-    }
-  }
-
-  if (type.includes("[") && type.endsWith("]")) {
-    const startIndex = type.indexOf("[");
-    //const innerType = type.slice(startIndex, type.length - 1);
-    let outerType = type.slice(0, startIndex);
-    if (outerType == "char") {
-      return "string";
-    }
-    outerType = typeToTS(outerType);
-    return `Array<${outerType}>`;
-  }
-
-  return type;
-}

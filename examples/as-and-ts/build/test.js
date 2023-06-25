@@ -1,4 +1,5 @@
 export async function instantiate(module, imports = {}) {
+  const __module0 = imports.test;
   const adaptedImports = {
     env: Object.assign(Object.create(globalThis), imports.env || {}, {
       abort(message, fileName, lineNumber, columnNumber) {
@@ -18,6 +19,7 @@ export async function instantiate(module, imports = {}) {
         console.log(text);
       },
     }),
+    test: __module0,
   };
   const { exports } = await WebAssembly.instantiate(module, adaptedImports);
   const memory = exports.memory || imports.env.memory;
