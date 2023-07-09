@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const Vec3_1 = require("../../assemblyscript/Vec3");
+const vec = new Vec3_1.Vec3(1, 2, 3);
+const buf = new ArrayBuffer(Vec3_1.Vec3.__FASS_SIZE);
+const bufPtr = changetype(buf);
+Vec3_1.Vec3.__FASS_SERIALIZE(buf, vec);
+console.log("(AS) Serialized: " + Uint8Array.wrap(buf).join(" "));
+console.log("(AS) Stored buffer at pointer " + bufPtr.toString());
+decode(bufPtr, Vec3_1.Vec3.__FASS_SIZE);

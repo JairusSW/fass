@@ -45,7 +45,6 @@ const imports = {
 }
 
 function __liftString(pointer) {
-  if (!pointer) return null;
   const
     end = pointer + new Uint32Array(memory)[pointer - 4 >>> 2] >>> 1,
     memoryU16 = new Uint16Array(memory);

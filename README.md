@@ -108,3 +108,29 @@ The same may be applied for strings (`char[]`)
 `char[LENGTH_OF_STRING]`
 
 Many more features will be implemented later :)
+
+## Usage (AssemblyScript)
+
+Install from GitHub (While in development)
+
+`npm i JairusSW/fass -g`
+
+Write your schemas and build the files.
+We are using a Vector 3 schema for this example.
+
+```
+struct Vec3 {
+    x: u8
+    y: u8
+    z: u8
+}```
+
+`fass build INPUT_FOLDER --assemblyscript -o OUTPUT_FOLDER`
+
+Take a look at the generated files, and use the provided classes.
+
+Now, in AssemblyScript, import it
+
+```js
+import { Vec3 } from "PATH-TO-VEC3.TS"
+```

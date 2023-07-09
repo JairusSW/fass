@@ -2,6 +2,9 @@
   "name": "fass",
   "version": "0.1.0",
   "description": "",
+  "bin": {
+    "fass": "src/cli/cli.js"
+  },
   "contributors": [],
   "license": "MIT",
   "scripts": {
@@ -17,7 +20,7 @@
     "@assemblyscript/wasi-shim": "^0.1.0",
     "@types/benchmark": "^2.1.2",
     "@types/node": "^20.3.1",
-    "as-bignum": "^0.2.31",
+    "as-bignum": "^0.2.40",
     "assemblyscript": "^0.27.5",
     "benchmark": "^2.1.4",
     "json-as": "^0.5.37",
@@ -36,6 +39,5 @@
   "bugs": {
     "url": "https://github.com/JairusSW/fass/issues"
   },
-  "homepage": "https://github.com/JairusSW/fass#readme",
-  "type": "module"
+  "homepage": "https://github.com/JairusSW/fass#readme"
 }
