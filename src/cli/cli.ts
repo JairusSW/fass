@@ -1,3 +1,5 @@
+#!/usr/bin/env bun
+
 // Going to use like Yargs or Commander for this later on...
 import * as fs from "fs";
 import * as path from "path";

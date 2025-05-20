@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 
+@fass
 class Vec3 {
   constructor(x, y, z) {
     this.x = x;

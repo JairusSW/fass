@@ -7,22 +7,15 @@ export class Vec3 {
     this.y = y;
     this.z = z;
   }
-  static __FASS_SIZE: u32 = 3;
-  static __FASS_SERIALIZE(output: ArrayBuffer, input: Vec3): void {
-    store<u8>(changetype<usize>(output), input.x, 0);
-    store<u8>(changetype<usize>(output), input.y, 1);
-    store<u8>(changetype<usize>(output), input.z, 2);
+  __FASS_SIZE: u32 = 3;
+  __FASS_SERIALIZE(output: usize, input: usize): void {
+    store<u8>(output, load<u8>(input, offsetof<Vec3>("x")), 0);
+    store<u8>(output, load<u8>(input, offsetof<Vec3>("y")), 1);
+    store<u8>(output, load<u8>(input, offsetof<Vec3>("z")), 2);
   }
-  static __FASS_DESERIALIZE(input: ArrayBuffer, output: Vec3): void {
-    output.x = load<u8>(changetype<usize>(input), 0);
-    output.y = load<u8>(changetype<usize>(input), 1);
-    output.z = load<u8>(changetype<usize>(input), 2);
+  __FASS_DESERIALIZE(input: usize, output: usize): void {
+    store<u8>(output, load<u8>(input, 0), offsetof<Vec3>("x"));
+    store<u8>(output, load<u8>(input, 1), offsetof<Vec3>("y"));
+    store<u8>(output, load<u8>(input, 2), offsetof<Vec3>("z"));
   }
-}
-
-export enum Quadrant {
-  TL = 1,
-  TR = 2,
-  BL = 3,
-  BR = 4,
 }

@@ -1,43 +1,51 @@
 {
   "name": "fass",
   "version": "0.1.0",
-  "description": "",
-  "bin": {
-    "fass": "src/cli/cli.js"
-  },
-  "contributors": [],
+  "author": "Jairus Tanaka",
+  "description": "A blindingly fast schema-driven serialization format",
+  "types": "assembly/index.ts",
+  "main": "transform/lib/index.js",
+  "homepage": "https://github.com/JairusSW/fass#readme",
   "license": "MIT",
-  "scripts": {
-    "generate:assemblyscript": "ts-node src/cli/cli.ts build ./schemas --assemblyscript -o ./examples",
-    "build:assemblyscript": "asc examples/assemblyscript/test/test.ts --target test",
-    "run:assemblyscript": "wasmtime ./examples/assemblyscript/test/test.wasm",
-    "generate:typescript": "ts-node src/cli/cli.ts build ./schemas --typescript -o ./examples",
-    "build:typescript": "",
-    "run:typescript": "ts-node examples/typescript/test/test.ts",
-    "build:as-and-ts": "npx asc examples/as-and-ts/assembly/test.ts --target as-and-ts"
-  },
-  "devDependencies": {
-    "@assemblyscript/wasi-shim": "^0.1.0",
-    "@types/benchmark": "^2.1.2",
-    "@types/node": "^20.3.1",
-    "as-bignum": "^0.3.1",
-    "assemblyscript": "^0.27.5",
-    "benchmark": "^2.1.4",
-    "json-as": "^0.8.3",
-    "prettier": "^3.2.5"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JairusSW/fass.git"
   },
-  "keywords": [
-    "assemblyscript",
-    "tbs",
-    "serialize",
-    "deserialize"
-  ],
   "bugs": {
     "url": "https://github.com/JairusSW/fass/issues"
   },
-  "homepage": "https://github.com/JairusSW/fass#readme"
+  "scripts": {
+    "test": "bash ./run-tests.sh",
+    "bench:as": "bash ./run-bench.as.sh",
+    "bench:js": "bash ./run-bench.js.sh",
+    "build:time": "time npx asc ./assembly/__benches__/abc.bench.ts --transform json-as/transform -o ./build/abc.bench.wasm --optimizeLevel 3 --shrinkLevel 0 --converge --noAssert --uncheckedBehavior always --runtime stub --enable simd --enable bulk-memory",
+    "build:test": "rm -rf ./build/ && JSON_DEBUG=true asc assembly/test.ts --transform json-as/transform -o ./build/test.wasm --textFile ./build/test.wat --debug --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json",
+    "build:test:simd": "rm -rf ./build/ && JSON_DEBUG=true asc assembly/test.ts --transform json-as/transform -o ./build/test.wasm --textFile ./build/test.wat --optimizeLevel 3 --shrinkLevel 0 --enable simd",
+    "test:wasmtime": "wasmtime ./build/test.wasm",
+    "test:wasmer": "wasmer ./build/test.wasm",
+    "build:transform": "tsc -p ./transform",
+    "bench:wasmer": "wasmer ./build/bench.wasm --llvm",
+    "prettier": "prettier -w ."
+  },
+  "devDependencies": {
+    "@assemblyscript/wasi-shim": "^0.1.0",
+    "@types/node": "^22.13.10",
+    "assemblyscript": "^0.27.35",
+    "assemblyscript-prettier": "^3.0.1",
+    "json-as": "^1.0.7",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "contributors": [],
+  "keywords": [
+    "assemblyscript",
+    "serialize",
+    "deserialize",
+    "performance"
+  ],
+  "publishConfig": {
+    "@JairusSW:registry": "https://npm.pkg.github.com"
+  },
+  "type": "module"
 }
