@@ -24,5 +24,5 @@ export class Schema {
   public node!: ClassDeclaration;
   public needsLink: string | null = null;
   public byteSize: number = 0;
-  public deps: Schema[] = [];
+  public refs: Schema[] = [];
 }

@@ -121,7 +121,7 @@ class FASSTransform extends Visitor {
         if (!this.schema.static)
             this.schema.members = sortMembers(this.schema.members);
         let SERIALIZE = "__FASS_SERIALIZE(input: usize, output: usize): void {\n";
-        let INITIALIZE = "@inline __INITIALIZE(): this {\n";
+        let INITIALIZE = "@inline __FASS_INITIALIZE(): this {\n";
         let SIZE = "@inline __FASS_SIZE(): i32 {\n  return ";
         let DESERIALIZE = "__FASS_DESERIALIZE(input: usize, output: usize): void {\n";
         indent = "  ";
@@ -137,8 +137,15 @@ class FASSTransform extends Visitor {
                 else if (isPrimitive(member.type)) {
                     return 1;
                 }
+                else if (isStruct(member.type)) {
+                    const struct = this.schema.name == stripNull(member.type) ? this.schema : this.schemas.find((v) => v.name == member.type);
+                    return 4 - 2 * Number(struct.static);
+                }
+                else if (member.node.decorators.some((v) => v.name.text == "bytes")) {
+                    return 3;
+                }
                 else {
-                    return 2;
+                    return 4;
                 }
             };
             return rank(a) - rank(b);
@@ -148,53 +155,205 @@ class FASSTransform extends Visitor {
             const prettyPath = path.join(".");
             for (const member of schema.members) {
                 const memberName = member.alias || member.name;
-                const prettyName = n == 0 ? memberName : prettyPath + "." + memberName;
-                const structRef = n == 0 ? ["input", "output"] : ["s" + n, "s" + n];
+                const prettyName = prettyPath ? prettyPath + "." + memberName : memberName;
+                const structRef = prettyPath ? ["s" + n, "s" + n] : ["input", "output"];
+                const memberNullable = member.node.type.isNullable;
+                if (member.value) {
+                    INITIALIZE += `  store<${member.type}>(changetype<usize>(this), ${member.value}, offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
+                }
+                else if (isStruct(member.type)) {
+                    INITIALIZE += `  store<nonnull<${member.type}>>(changetype<usize>(this), changetype<nonnull<${member.type}>>(__new(offsetof<nonnull<${member.type}>>(), idof<nonnull<${member.type}>>())), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
+                }
+                else if (member.type.startsWith("Map<")) {
+                    INITIALIZE += `  store<nonnull<${member.type}>>(changetype<usize>(this), new ${member.type}(), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
+                }
+                else if (member.type.startsWith("StaticArray<") || member.type.startsWith("Array<")) {
+                    const bodyBytes = member.node.decorators.reduce((result, v) => {
+                        if (v.name.text == "bytes") {
+                            return parseInt(i64_to_string(v.args[0].value));
+                        }
+                        return result;
+                    }, 0);
+                    INITIALIZE += `  store<nonnull<${member.type}>>(changetype<usize>(this), new ${member.type}(${bodyBytes / sizeof(member.type)}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
+                }
+                else if (isString(member.type)) {
+                    INITIALIZE += `  store<nonnull<${member.type}>>(changetype<usize>(this), changetype<string>(__new(0, idof<string>())), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
+                }
+                console.log("mem: " + prettyName);
                 if (isBoolean(member.type)) {
+                    console.log("bool");
                     if (boolBytes == 1) {
                         SIZE += member.byteSize + " + ";
-                        SERIALIZE += `${indent}store<u8>(output, load<u8>(${structRef[0]}, ${offset}), ${offset});  // ${prettyName}\n`;
-                        DESERIALIZE += `${indent}store<u8>(${structRef[1]}, load<u8>(input, ${offset}), ${offset});  // ${prettyName}\n`;
+                        SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}")), ${offset});  // ${prettyName}\n`;
+                        DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
                         offset += member.byteSize;
                     }
                     else {
-                        SERIALIZE += `${indent}store<u8>(output, load<u8>(${structRef[0]}, ${offset}), ${offset});  // ${prettyName}\n`;
-                        DESERIALIZE += `${indent}store<u8>(${structRef[1]}, load<u8>(input, ${offset}), ${offset});  // ${prettyName}\n`;
+                        SIZE += member.byteSize + " + ";
+                        SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}")), ${offset});  // ${prettyName}\n`;
+                        DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
+                        offset += member.byteSize;
                     }
                 }
                 else if (isPrimitive(member.type)) {
+                    console.log("primitive");
                     SIZE += member.byteSize + " + ";
-                    SERIALIZE += `${indent}store<${member.type}>(output, load<${member.type}>(${structRef[0]}, ${offset}), ${offset});  // ${prettyName}\n`;
-                    DESERIALIZE += `${indent}store<${member.type}>(${structRef[1]}, load<${member.type}>(input, ${offset}), ${offset});  // ${prettyName}\n`;
+                    SERIALIZE += `  store<${member.type}>(output, load<${member.type}>(${structRef[0]}, offsetof<${schema.name}>("${member.name}")), ${offset});  // ${prettyName}\n`;
+                    DESERIALIZE += `  store<${member.type}>(${structRef[1]}, load<${member.type}>(input, ${offset}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
                     offset += member.byteSize;
                 }
-                else if (member.type == "Direction") {
+                else if (isString(member.type)) {
+                    console.log("string");
+                    let bodyBytes = 0;
+                    const hasSize = member.node.decorators.some((v) => {
+                        if (v.name.text == "bytes") {
+                            bodyBytes = 2 * parseInt(i64_to_string(v.args[0].value));
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (hasSize) {
+                        const headerBytes = 2 + 2 * Number(bodyBytes > 65535);
+                        console.log("Header bytes: " + headerBytes);
+                        console.log("Body bytes:" + bodyBytes);
+                        member.byteSize = bodyBytes;
+                        let imOffset = 0;
+                        if (bodyBytes <= 64) {
+                            while (bodyBytes >= 8) {
+                                SERIALIZE += `  store<u64>(output, load<u64>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u64>(${structRef[1]}, load<u64>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 8;
+                                imOffset += 8;
+                                offset += 8;
+                                SIZE += "8 + ";
+                            }
+                            if (bodyBytes >= 4) {
+                                SERIALIZE += `  store<u32>(output, load<u32>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u32>(${structRef[1]}, load<u32>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 4;
+                                imOffset += 4;
+                                offset += 4;
+                                SIZE += "4 + ";
+                            }
+                            if (bodyBytes >= 2) {
+                                SERIALIZE += `  store<u16>(output, load<u16>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u16>(${structRef[1]}, load<u16>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 2;
+                                imOffset += 2;
+                                offset += 2;
+                                SIZE += "2 + ";
+                            }
+                            if (bodyBytes >= 1) {
+                                SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 1;
+                                imOffset += 1;
+                                offset += 1;
+                                SIZE += "1 + ";
+                            }
+                        }
+                        else {
+                            SERIALIZE += `  memory.copy(output, ${structRef[0]}, ${bodyBytes}); // ${prettyName}\n`;
+                        }
+                    }
+                    else {
+                        SIZE += "this." + member.name + ".length << 1" + " + ";
+                        this.schema.static = false;
+                    }
+                }
+                else if (isStaticArray(member.type)) {
+                    console.log("staticarray");
+                    let bodyBytes = 0;
+                    const hasSize = member.node.decorators.some((v) => {
+                        if (v.name.text == "bytes") {
+                            bodyBytes = parseInt(i64_to_string(v.args[0].value));
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (hasSize) {
+                        const headerBytes = 2 + 2 * Number(bodyBytes > 65535);
+                        console.log("Header bytes: " + headerBytes);
+                        member.byteSize = bodyBytes;
+                        let imOffset = 0;
+                        if (bodyBytes < 64) {
+                            while (bodyBytes >= 8) {
+                                SERIALIZE += `  store<u64>(output, load<u64>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u64>(${structRef[1]}, load<u64>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 8;
+                                imOffset += 8;
+                                offset += 8;
+                                SIZE += "8 + ";
+                            }
+                            if (bodyBytes >= 4) {
+                                SERIALIZE += `  store<u32>(output, load<u32>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u32>(${structRef[1]}, load<u32>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 4;
+                                imOffset += 4;
+                                offset += 4;
+                                SIZE += "4 + ";
+                            }
+                            if (bodyBytes >= 2) {
+                                SERIALIZE += `  store<u16>(output, load<u16>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u16>(${structRef[1]}, load<u16>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 2;
+                                imOffset += 2;
+                                offset += 2;
+                                SIZE += "2 + ";
+                            }
+                            if (bodyBytes >= 1) {
+                                SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+                                DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+                                bodyBytes -= 1;
+                                imOffset += 1;
+                                offset += 1;
+                                SIZE += "1 + ";
+                            }
+                        }
+                        else {
+                            this.schema.static = false;
+                        }
+                    }
+                }
+                else {
                     console.log("Struct: " + member.type);
-                    const struct = this.schemas.find((v) => v.name == member.type);
-                    n++;
-                    SERIALIZE += `${indent}const s${n} = load<usize>(${structRef[0]}, offsetof<${schema.name}>("${member.name}"));\n`;
-                    DESERIALIZE += `${indent}const s${n} = load<usize>(${structRef[1]}, offsetof<${schema.name}>("${member.name}"));\n`;
-                    path.push(member.name);
-                    generate(struct, n, path);
-                    path.pop();
+                    let circular = false;
+                    const struct = this.schema.name == stripNull(member.type) ? (circular = true, this.schema) : this.schemas.find((v) => v.name == member.type);
+                    if (!struct.static)
+                        this.schema.static = false;
+                    if (circular) {
+                        console.log("Circular: " + member.type);
+                    }
+                    else {
+                        SERIALIZE += `  const s${++n} = load<usize>(${structRef[0]}, offsetof<${schema.name}>("${member.name}"));\n`;
+                        DESERIALIZE += `  const s${n} = load<usize>(${structRef[1]}, offsetof<${schema.name}>("${member.name}"));\n`;
+                        path.push(member.name);
+                        generate(struct, n, path);
+                        path.pop();
+                    }
                 }
             }
         };
-        generate(this.schema, 0);
+        generate(this.schema);
         indentDec();
-        DESERIALIZE += `${indent}}\n`;
-        SERIALIZE += `${indent}}\n`;
-        SIZE = SIZE.slice(0, SIZE.length - 3) + `;\n${indent}}\n`;
+        DESERIALIZE += `}\n`;
+        SERIALIZE += `}\n`;
+        SIZE = SIZE.slice(0, SIZE.length - 3) + `;\n}\n`;
+        INITIALIZE += `  return this;\n}\n`;
         if (process.env["DEBUG"]) {
             console.log(SERIALIZE);
+            console.log(INITIALIZE);
             console.log(SIZE);
             console.log(DESERIALIZE);
         }
         const SERIALIZE_METHOD = SimpleParser.parseClassMember(SERIALIZE, node);
         const SIZE_METHOD = SimpleParser.parseClassMember(SIZE, node);
+        const INITIALIZE_METHOD = SimpleParser.parseClassMember(INITIALIZE, node);
         const DESERIALIZE_METHOD = SimpleParser.parseClassMember(DESERIALIZE, node);
         if (!node.members.find((v) => v.name.text == "__FASS_SERIALIZE"))
             node.members.push(SERIALIZE_METHOD);
+        if (!node.members.find((v) => v.name.text == "__FASS_INITIALIZE"))
+            node.members.push(INITIALIZE_METHOD);
         if (!node.members.find((v) => v.name.text == "__FASS_SIZE"))
             node.members.push(SIZE_METHOD);
         if (!node.members.find((v) => v.name.text == "__FASS_DESERIALIZE"))
@@ -347,17 +506,17 @@ function toMemCDecl(n, indent) {
     let offset = 0;
     let index = 0;
     while (n >= 8) {
-        out += `${indent}const code${index++} = load<u64>(keyStart, ${offset});\n`;
+        out += `  const code${index++} = load<u64>(keyStart, ${offset});\n`;
         offset += 8;
         n -= 8;
     }
     while (n >= 4) {
-        out += `${indent}const code${index++} = load<u32>(keyStart, ${offset});\n`;
+        out += `  const code${index++} = load<u32>(keyStart, ${offset});\n`;
         offset += 4;
         n -= 4;
     }
     if (n == 1)
-        out += `${indent}const code${index++} = load<u16>(keyStart, ${offset});\n`;
+        out += `  const code${index++} = load<u16>(keyStart, ${offset});\n`;
     return out;
 }
 function toMemCCheck(data) {
@@ -413,7 +572,14 @@ function isBoolean(type) {
     return type == "bool" || type == "boolean";
 }
 function isStruct(type) {
-    return FASSTransform.SN.schemas.some((v) => v.name == type);
+    type = stripNull(type);
+    return FASSTransform.SN.schemas.some((v) => v.name == type) || FASSTransform.SN.schema.name == type;
+}
+function isString(type) {
+    return type.startsWith("string");
+}
+function isStaticArray(type) {
+    return type.startsWith("StaticArray<");
 }
 function throwError(message, range) {
     const err = new Error();
@@ -451,5 +617,11 @@ function sizeof(type) {
         return 1;
     else
         return 0;
+}
+function stripNull(type) {
+    if (type.endsWith(" | null")) {
+        return type.slice(0, type.length - 7);
+    }
+    return type;
 }
 //# sourceMappingURL=index.js.map

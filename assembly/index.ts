@@ -68,6 +68,9 @@ export namespace FASS {
       // @ts-ignore: transform
       if (isDefined(type.__FASS_DESERIALIZE)) {
         const out = changetype<T>(__new(offsetof<nonnull<T>>(), idof<nonnull<T>>()));
+      // @ts-ignore: transform
+        out.__FASS_INITIALIZE()
+      // @ts-ignore: transform
         inline.always(out.__FASS_DESERIALIZE(dataPtr, changetype<usize>(out)));
         return out
         // @ts-ignore: transform
