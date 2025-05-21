@@ -1,5 +1,5 @@
 #!/bin/bash
-RUNTIMES=${RUNTIMES:-"stub"}
+RUNTIMES=${RUNTIMES:-"minimal stub"}
 ENGINES=${ENGINES:-"liftoff ignition sparkplug turbofan llvm"}
 for file in ./assembly/__benches__/*.bench.ts; do
     filename=$(basename -- "$file")

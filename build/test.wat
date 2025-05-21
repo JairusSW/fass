@@ -8522,7 +8522,11 @@
     local.get $10
     local.tee $11
     i32.store offset=28
-    i32.const 3
+    i32.const 1
+    i32.const 1
+    i32.add
+    i32.const 1
+    i32.add
     br $assembly/test/Vec3#__FASS_SIZE|inlined.0
    end
    call $~lib/arraybuffer/ArrayBuffer#constructor
@@ -8848,7 +8852,7 @@
    i32.store offset=76
    local.get $35
    local.set $38
-   i32.const 76
+   i32.const 130
    local.set $39
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
    local.get $39
@@ -9023,7 +9027,15 @@
     local.get $45
     local.tee $46
     i32.store offset=88
-    i32.const 17
+    i32.const 1
+    i32.const 4
+    i32.add
+    i32.const 4
+    i32.add
+    i32.const 4
+    i32.add
+    i32.const 4
+    i32.add
     br $assembly/test/Movement#__FASS_SIZE|inlined.0
    end
    call $~lib/arraybuffer/ArrayBuffer#constructor
@@ -9050,15 +9062,15 @@
    local.set $51
    local.get $50
    local.get $51
-   f32.load
+   f32.load offset=5
    f32.store offset=5
    local.get $50
    local.get $51
-   f32.load offset=4
+   f32.load offset=9
    f32.store offset=9
    local.get $50
    local.get $51
-   f32.load offset=8
+   f32.load offset=13
    f32.store offset=13
    local.get $47
    br $assembly/index/FASS.serialize<assembly/test/Movement>|inlined.0
@@ -9150,15 +9162,15 @@
    local.get $61
    local.get $59
    f32.load offset=5
-   f32.store
+   f32.store offset=5
    local.get $61
    local.get $59
    f32.load offset=9
-   f32.store offset=4
+   f32.store offset=9
    local.get $61
    local.get $59
    f32.load offset=13
-   f32.store offset=8
+   f32.store offset=13
    local.get $57
    br $assembly/index/FASS.deserialize<assembly/test/Movement>|inlined.0
   end
@@ -9198,7 +9210,7 @@
    i32.store offset=120
    local.get $62
    local.set $65
-   i32.const 76
+   i32.const 130
    local.set $66
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
    local.get $66
