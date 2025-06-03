@@ -19,7 +19,6 @@
     "bench:as": "bash ./run-bench.as.sh",
     "bench:js": "bash ./run-bench.js.sh",
     "build:test": "rm -rf ./build/ && DEBUG=true asc assembly/test.ts --transform json-as/transform --transform ./transform -o ./build/test.wasm --textFile ./build/test.wat --debug --config ./node_modules/@assemblyscript/wasi-shim/asconfig.json",
-    "build:test:simd": "rm -rf ./build/ && JSON_DEBUG=true asc assembly/test.ts --transform json-as/transform -o ./build/test.wasm --textFile ./build/test.wat --optimizeLevel 3 --shrinkLevel 0 --enable simd",
     "test:wasmtime": "wasmtime ./build/test.wasm",
     "test:wasmer": "wasmer ./build/test.wasm",
     "build:transform": "tsc -p ./transform",

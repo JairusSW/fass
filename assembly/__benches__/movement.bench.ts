@@ -1,3 +1,4 @@
+import { OBJECT, TOTAL_OVERHEAD } from "rt/common";
 import { FASS } from "..";
 import { bench } from "./lib/bench";
 

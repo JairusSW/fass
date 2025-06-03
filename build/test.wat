@@ -6844,6 +6844,26 @@
   i32.add
   global.set $~lib/memory/__stack_pointer
  )
+ (func $~lib/string/String.UTF16.byteLength (param $str i32) (result i32)
+  local.get $str
+  i32.const 20
+  i32.sub
+  call $~lib/rt/common/OBJECT#get:rtSize
+  return
+ )
+ (func $~lib/string/String.UTF16.encodeUnsafe (param $str i32) (param $len i32) (param $buf i32) (result i32)
+  (local $size i32)
+  local.get $len
+  i32.const 1
+  i32.shl
+  local.set $size
+  local.get $buf
+  local.get $str
+  local.get $size
+  memory.copy
+  local.get $size
+  return
+ )
  (func $~lib/rt/__visit_globals (param $0 i32)
   (local $1 i32)
   global.get $assembly/test/a1
@@ -9610,6 +9630,49 @@
   i32.add
   global.set $~lib/memory/__stack_pointer
  )
+ (func $~lib/string/String.UTF16.encode (param $str i32) (result i32)
+  (local $buf i32)
+  (local $2 i32)
+  global.get $~lib/memory/__stack_pointer
+  i32.const 8
+  i32.sub
+  global.set $~lib/memory/__stack_pointer
+  call $~stack_check
+  global.get $~lib/memory/__stack_pointer
+  i64.const 0
+  i64.store
+  global.get $~lib/memory/__stack_pointer
+  local.get $str
+  local.set $2
+  global.get $~lib/memory/__stack_pointer
+  local.get $2
+  i32.store
+  local.get $2
+  call $~lib/string/String.UTF16.byteLength
+  i32.const 1
+  call $~lib/rt/itcms/__new
+  local.tee $buf
+  i32.store offset=4
+  local.get $str
+  local.get $str
+  local.set $2
+  global.get $~lib/memory/__stack_pointer
+  local.get $2
+  i32.store
+  local.get $2
+  call $~lib/string/String#get:length
+  local.get $buf
+  call $~lib/string/String.UTF16.encodeUnsafe
+  drop
+  local.get $buf
+  local.set $2
+  global.get $~lib/memory/__stack_pointer
+  i32.const 8
+  i32.add
+  global.set $~lib/memory/__stack_pointer
+  local.get $2
+  return
+ )
  (func $start:assembly/test
   (local $0 i32)
   (local $1 i32)
@@ -9724,10 +9787,6 @@
   (local $110 i32)
   (local $111 i32)
   (local $112 i32)
-  (local $113 i32)
-  (local $114 i32)
-  (local $115 i32)
-  (local $116 i32)
   global.get $~lib/memory/__stack_pointer
   i32.const 196
   i32.sub
@@ -9746,11 +9805,11 @@
   call $assembly/test/Vec3#constructor
   global.set $assembly/test/a1
   i32.const 1824
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Vec3>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/a1
@@ -9891,17 +9950,17 @@
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Vec3>|inlined.0
   end
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.serialize<assembly/test/Vec3>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -9958,29 +10017,29 @@
   end
   global.set $assembly/test/a2
   i32.const 5456
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   global.get $assembly/test/a2
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=40
-  local.get $116
+  local.get $112
   call $assembly/test/visualise
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.deserialize<assembly/test/Vec3>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -10055,11 +10114,11 @@
   end
   global.set $assembly/test/a3
   i32.const 6960
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Vec3>|inlined.1 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/a3
@@ -10200,17 +10259,17 @@
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Vec3>|inlined.1
   end
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   i32.const 0
   i32.const 1
@@ -10220,19 +10279,19 @@
   f32.const 2
   f32.const 3
   call $assembly/test/Direction#constructor
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $assembly/test/Movement#constructor
   global.set $assembly/test/b1
   i32.const 6992
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Movement>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/b1
@@ -10355,11 +10414,11 @@
    global.set $~lib/json-as/lib/as-bs/bs.offset
    local.get $39
    i32.load offset=8
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<assembly/test/Direction>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i32.const 125
@@ -10390,17 +10449,17 @@
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Movement>|inlined.0
   end
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.serialize<assembly/test/Movement>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -10457,44 +10516,44 @@
    local.set $52
    local.get $51
    local.get $52
-   f32.load
+   f32.load offset=8
    f32.store offset=5
    local.get $51
    local.get $52
-   f32.load offset=4
+   f32.load
    f32.store offset=9
    local.get $51
    local.get $52
-   f32.load offset=8
+   f32.load offset=4
    f32.store offset=13
    local.get $48
    br $assembly/index/FASS.serialize<assembly/test/Movement>|inlined.0
   end
   global.set $assembly/test/b2
   i32.const 7952
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   global.get $assembly/test/b2
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=40
-  local.get $116
+  local.get $112
   call $assembly/test/visualise
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.deserialize<assembly/test/Movement>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -10571,25 +10630,25 @@
    local.get $63
    local.get $61
    f32.load offset=5
-   f32.store
+   f32.store offset=8
    local.get $63
    local.get $61
    f32.load offset=9
-   f32.store offset=4
+   f32.store
    local.get $63
    local.get $61
    f32.load offset=13
-   f32.store offset=8
+   f32.store offset=4
    local.get $58
    br $assembly/index/FASS.deserialize<assembly/test/Movement>|inlined.0
   end
   global.set $assembly/test/b3
   i32.const 7984
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Movement>|inlined.1 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/b3
@@ -10712,11 +10771,11 @@
    global.set $~lib/json-as/lib/as-bs/bs.offset
    local.get $67
    i32.load offset=8
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<assembly/test/Direction>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i32.const 125
@@ -10747,37 +10806,37 @@
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Movement>|inlined.1
   end
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   i32.const 0
   i32.const 1
   i32.const 8016
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   i64.const 4531293
   i32.const 0
   i32.const 1
   i32.const 2
   i32.const 3
   call $assembly/test/Vec3#constructor
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   i32.const 0
   i32.const 1
   f32.const 4.210000038146973
@@ -10786,25 +10845,25 @@
   f32.const -13.199999809265137
   f32.const 19.229999542236328
   call $assembly/test/Direction#constructor
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=40
-  local.get $116
+  local.get $112
   call $assembly/test/Movement#constructor
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $assembly/test/Player#constructor
   global.set $assembly/test/p1
   i32.const 8064
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Player>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/p1
@@ -10905,11 +10964,11 @@
    global.set $~lib/json-as/lib/as-bs/bs.offset
    local.get $77
    i32.load offset=4
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<~lib/string/String>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i64.const 28147948644859948
@@ -10939,11 +10998,11 @@
    global.set $~lib/json-as/lib/as-bs/bs.offset
    local.get $77
    i32.load offset=16
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<assembly/test/Vec3>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i64.const 31244190568546348
@@ -10960,11 +11019,11 @@
    global.set $~lib/json-as/lib/as-bs/bs.offset
    local.get $77
    i32.load offset=20
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<assembly/test/Movement>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i32.const 125
@@ -10995,17 +11054,17 @@
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Player>|inlined.0
   end
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.serialize<assembly/test/Player>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -11032,27 +11091,21 @@
     i32.add
     i32.const 1
     i32.add
+    i32.const 4
+    i32.add
+    i32.const 4
+    i32.add
+    i32.const 4
+    i32.add
+    i32.const 4
+    i32.add
     i32.const 1
     i32.add
     i32.const 1
     i32.add
     i32.const 1
     i32.add
-    i32.const 4
-    i32.add
-    i32.const 4
-    i32.add
-    i32.const 4
-    i32.add
-    i32.const 4
-    i32.add
-    i32.const 8
-    i32.add
-    i32.const 8
-    i32.add
-    i32.const 8
-    i32.add
-    i32.const 2
+    i32.const 26
     i32.add
     br $assembly/test/Player#__FASS_SIZE|inlined.0
    end
@@ -11076,7 +11129,7 @@
    i64.load offset=8
    i64.store offset=1
    local.get $88
-   i32.load offset=16
+   i32.load offset=20
    local.set $90
    local.get $89
    local.get $90
@@ -11084,38 +11137,38 @@
    i32.store8 offset=9
    local.get $89
    local.get $90
+   f32.load offset=4
+   f32.store offset=10
+   local.get $90
+   i32.load offset=8
+   local.set $90
+   local.get $89
+   local.get $90
+   f32.load offset=8
+   f32.store offset=14
+   local.get $89
+   local.get $90
+   f32.load
+   f32.store offset=18
+   local.get $89
+   local.get $90
+   f32.load offset=4
+   f32.store offset=22
+   local.get $88
+   i32.load offset=16
+   local.set $90
+   local.get $89
+   local.get $90
+   i32.load8_u
+   i32.store8 offset=26
+   local.get $89
+   local.get $90
    i32.load8_u offset=1
-   i32.store8 offset=10
+   i32.store8 offset=27
    local.get $89
    local.get $90
    i32.load8_u offset=2
-   i32.store8 offset=11
-   local.get $88
-   i32.load offset=20
-   local.set $91
-   local.get $89
-   local.get $91
-   i32.load8_u
-   i32.store8 offset=12
-   local.get $89
-   local.get $91
-   f32.load offset=4
-   f32.store offset=13
-   local.get $91
-   i32.load offset=8
-   local.set $92
-   local.get $89
-   local.get $92
-   f32.load
-   f32.store offset=17
-   local.get $89
-   local.get $92
-   f32.load offset=4
-   f32.store offset=21
-   local.get $89
-   local.get $92
-   f32.load offset=8
-   f32.store offset=25
+   i32.store8 offset=28
    local.get $89
    local.get $88
    i64.load offset=4
@@ -11137,188 +11190,188 @@
   end
   global.set $assembly/test/p2
   i32.const 8128
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   global.get $assembly/test/p2
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=40
-  local.get $116
+  local.get $112
   call $assembly/test/visualise
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.deserialize<assembly/test/Player>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/p2
-   local.tee $93
+   local.tee $91
    i32.store offset=164
    block $assembly/util/bytes/bytes<~lib/arraybuffer/ArrayBuffer>|inlined.2 (result i32)
     global.get $~lib/memory/__stack_pointer
-    local.get $93
-    local.tee $94
+    local.get $91
+    local.tee $92
     i32.store offset=168
     i32.const 0
     drop
     i32.const 1
     drop
-    local.get $94
+    local.get $92
     i32.const 20
     i32.sub
     call $~lib/rt/common/OBJECT#get:rtSize
     br $assembly/util/bytes/bytes<~lib/arraybuffer/ArrayBuffer>|inlined.2
    end
+   local.set $93
+   local.get $91
+   local.set $94
+   i32.const 0
+   drop
+   i32.const 0
+   drop
+   i32.const 0
+   drop
+   i32.const 0
    local.set $95
-   local.get $93
-   local.set $96
-   i32.const 0
-   drop
-   i32.const 0
-   drop
-   i32.const 0
-   drop
-   i32.const 0
-   local.set $97
    i32.const 1
    drop
    global.get $~lib/memory/__stack_pointer
    i32.const 24
    i32.const 10
    call $~lib/rt/itcms/__new
-   local.tee $98
+   local.tee $96
    i32.store offset=172
    block $assembly/test/Player#__FASS_INITIALIZE|inlined.0 (result i32)
     global.get $~lib/memory/__stack_pointer
-    local.get $98
-    local.tee $99
+    local.get $96
+    local.tee $97
     i32.store offset=176
-    local.get $99
-    i32.const 3
-    i32.const 6
-    call $~lib/rt/itcms/__new
-    i32.store offset=16
-    local.get $99
+    local.get $97
     i32.const 12
     i32.const 8
     call $~lib/rt/itcms/__new
     i32.store offset=20
-    local.get $99
+    local.get $97
     i32.const 12
     i32.const 9
     call $~lib/rt/itcms/__new
     i32.store offset=8
-    local.get $99
+    local.get $97
+    i32.const 3
+    i32.const 6
+    call $~lib/rt/itcms/__new
+    i32.store offset=16
+    local.get $97
     i32.const 0
     i32.const 2
     call $~lib/rt/itcms/__new
     i32.store offset=4
-    local.get $99
+    local.get $97
     br $assembly/test/Player#__FASS_INITIALIZE|inlined.0
    end
    drop
    global.get $~lib/memory/__stack_pointer
-   local.get $98
-   local.tee $100
-   i32.store offset=180
    local.get $96
-   local.set $101
-   local.get $98
-   local.set $102
-   local.get $102
-   local.get $101
+   local.tee $98
+   i32.store offset=180
+   local.get $94
+   local.set $99
+   local.get $96
+   local.set $100
+   local.get $100
+   local.get $99
    i32.load8_u
    i32.store8
-   local.get $102
-   local.get $101
+   local.get $100
+   local.get $99
    i64.load offset=1
    i64.store offset=8
-   local.get $102
-   i32.load offset=16
-   local.set $103
-   local.get $103
+   local.get $100
+   i32.load offset=20
+   local.set $101
    local.get $101
+   local.get $99
    i32.load8_u offset=9
    i32.store8
-   local.get $103
    local.get $101
-   i32.load8_u offset=10
-   i32.store8 offset=1
-   local.get $103
-   local.get $101
-   i32.load8_u offset=11
-   i32.store8 offset=2
-   local.get $102
-   i32.load offset=20
-   local.set $104
-   local.get $104
-   local.get $101
-   i32.load8_u offset=12
-   i32.store8
-   local.get $104
-   local.get $101
-   f32.load offset=13
+   local.get $99
+   f32.load offset=10
    f32.store offset=4
-   local.get $104
+   local.get $101
    i32.load offset=8
-   local.set $105
-   local.get $105
+   local.set $101
    local.get $101
-   f32.load offset=17
-   f32.store
-   local.get $105
-   local.get $101
-   f32.load offset=21
-   f32.store offset=4
-   local.get $105
-   local.get $101
-   f32.load offset=25
+   local.get $99
+   f32.load offset=14
    f32.store offset=8
-   local.get $102
    local.get $101
+   local.get $99
+   f32.load offset=18
+   f32.store
+   local.get $101
+   local.get $99
+   f32.load offset=22
+   f32.store offset=4
+   local.get $100
+   i32.load offset=16
+   local.set $101
+   local.get $101
+   local.get $99
+   i32.load8_u offset=26
+   i32.store8
+   local.get $101
+   local.get $99
+   i32.load8_u offset=27
+   i32.store8 offset=1
+   local.get $101
+   local.get $99
+   i32.load8_u offset=28
+   i32.store8 offset=2
+   local.get $100
+   local.get $99
    i64.load offset=29
    i64.store offset=4
-   local.get $102
-   local.get $101
+   local.get $100
+   local.get $99
    i64.load offset=37
    i64.store offset=12
-   local.get $102
-   local.get $101
+   local.get $100
+   local.get $99
    i64.load offset=45
    i64.store offset=20
-   local.get $102
-   local.get $101
+   local.get $100
+   local.get $99
    i32.load16_u offset=53
    i32.store16 offset=28
-   local.get $98
+   local.get $96
    br $assembly/index/FASS.deserialize<assembly/test/Player>|inlined.0
   end
   global.set $assembly/test/p3
   i32.const 8160
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=4
-  local.get $116
+  local.get $112
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Player>|inlined.1 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/p3
-   local.tee $106
+   local.tee $102
    i32.store offset=184
    i32.const 0
-   local.set $107
+   local.set $103
    i32.const 0
    drop
    i32.const 0
@@ -11336,15 +11389,15 @@
    i32.const 1
    drop
    global.get $~lib/memory/__stack_pointer
-   local.get $106
-   local.tee $108
+   local.get $102
+   local.tee $104
    i32.store offset=188
-   local.get $106
-   local.set $109
+   local.get $102
+   local.set $105
    i32.const 318
-   local.set $110
+   local.set $106
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
-   local.get $110
+   local.get $106
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.stackSize
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
@@ -11352,11 +11405,11 @@
    i32.gt_u
    if
     block $~lib/json-as/lib/as-bs/nextPowerOf2|inlined.20 (result i32)
-     local.get $110
-     local.set $111
+     local.get $106
+     local.set $107
      i32.const 1
      i32.const 32
-     local.get $111
+     local.get $107
      i32.const 1
      i32.sub
      i32.clz
@@ -11364,24 +11417,24 @@
      i32.shl
      br $~lib/json-as/lib/as-bs/nextPowerOf2|inlined.20
     end
-    local.set $112
+    local.set $108
     global.get $~lib/json-as/lib/as-bs/bs.bufferSize
-    local.get $112
+    local.get $108
     i32.add
     global.set $~lib/json-as/lib/as-bs/bs.bufferSize
     global.get $~lib/memory/__stack_pointer
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     global.get $~lib/json-as/lib/as-bs/bs.bufferSize
     call $~lib/rt/itcms/__renew
-    local.tee $113
+    local.tee $109
     i32.store offset=192
     global.get $~lib/json-as/lib/as-bs/bs.offset
-    local.get $113
+    local.get $109
     i32.add
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     i32.sub
     global.set $~lib/json-as/lib/as-bs/bs.offset
-    local.get $113
+    local.get $109
     global.set $~lib/json-as/lib/as-bs/bs.buffer
    end
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -11397,7 +11450,7 @@
    i32.const 20
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $109
+   local.get $105
    i32.load8_u
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -11410,13 +11463,13 @@
    i32.const 16
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $109
+   local.get $105
    i32.load offset=4
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<~lib/string/String>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i64.const 28147948644859948
@@ -11428,7 +11481,7 @@
    i32.const 12
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $109
+   local.get $105
    i64.load offset=8
    call $~lib/json-as/assembly/index/JSON.__serialize<u64>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -11444,13 +11497,13 @@
    i32.const 14
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $109
+   local.get $105
    i32.load offset=16
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<assembly/test/Vec3>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i64.const 31244190568546348
@@ -11465,13 +11518,13 @@
    i32.const 24
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $109
+   local.get $105
    i32.load offset=20
-   local.set $116
+   local.set $112
    global.get $~lib/memory/__stack_pointer
-   local.get $116
+   local.get $112
    i32.store offset=40
-   local.get $116
+   local.get $112
    call $~lib/json-as/assembly/index/JSON.__serialize<assembly/test/Movement>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i32.const 125
@@ -11484,35 +11537,54 @@
     global.get $~lib/json-as/lib/as-bs/bs.offset
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     i32.sub
-    local.set $114
-    local.get $114
+    local.set $110
+    local.get $110
     i32.const 2
     call $~lib/rt/itcms/__new
-    local.set $115
-    local.get $115
+    local.set $111
+    local.get $111
     global.get $~lib/json-as/lib/as-bs/bs.buffer
-    local.get $114
+    local.get $110
     memory.copy
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     global.set $~lib/json-as/lib/as-bs/bs.offset
     i32.const 0
     global.set $~lib/json-as/lib/as-bs/bs.stackSize
-    local.get $115
+    local.get $111
     br $~lib/json-as/lib/as-bs/bs.out<~lib/string/String>|inlined.5
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Player>|inlined.1
   end
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store offset=8
-  local.get $116
+  local.get $112
   call $~lib/string/String.__concat
-  local.set $116
+  local.set $112
   global.get $~lib/memory/__stack_pointer
-  local.get $116
+  local.get $112
   i32.store
-  local.get $116
+  local.get $112
+  call $~lib/wasi_console/wasi_console.log
+  i32.const 8016
+  local.set $112
+  global.get $~lib/memory/__stack_pointer
+  local.get $112
+  i32.store offset=8
+  local.get $112
+  call $~lib/string/String.UTF16.encode
+  local.set $112
+  global.get $~lib/memory/__stack_pointer
+  local.get $112
+  i32.store offset=4
+  local.get $112
+  call $assembly/test/visualise
+  local.set $112
+  global.get $~lib/memory/__stack_pointer
+  local.get $112
+  i32.store
+  local.get $112
   call $~lib/wasi_console/wasi_console.log
   global.get $~lib/memory/__stack_pointer
   i32.const 196

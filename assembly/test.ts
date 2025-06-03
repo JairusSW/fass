@@ -1,5 +1,6 @@
 import { JSON } from "json-as";
 import { FASS } from ".";
+import { OBJECT, TOTAL_OVERHEAD } from "rt/common";
 
 @fass
 @json
@@ -37,6 +38,7 @@ class Direction {
   public pitch: f32;
   public yaw: f32;
   public facing: f32;
+  // public foo: string = "bar";
 
   constructor(pitch: f32, yaw: f32, facing: f32) {
     this.pitch = pitch;
@@ -181,7 +183,8 @@ console.log("p2: " + visualise(p2));
 const p3 = FASS.deserialize<Player>(p2);
 console.log("p3: " + JSON.stringify(p3));
 
-// console.log(visualise(String.UTF16.encode("hello world")))
+console.log(visualise(String.UTF16.encode("Jairus Tanaka")))
+
 function visualise(data: ArrayBuffer): string {
   const bytes = Uint8Array.wrap(data);
   return bytes.join(" ");

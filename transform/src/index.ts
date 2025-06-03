@@ -192,13 +192,18 @@ class FASSTransform extends Visitor {
     let SIZE = "@inline __FASS_SIZE(): i32 {\n  return ";
     let DESERIALIZE = "__FASS_DESERIALIZE(input: usize, output: usize): void {\n";
 
+    let offsets: (number | string)[] = [];
+
     indent = "  ";
 
     let boolBytes = 0;
     this.schema.members = this.schema.members
       .slice()
       .sort((a, b) => {
-        const rank = (member) => {
+        return a.name.localeCompare(b.name);
+      })
+      .sort((a, b) => {
+        const rank = (member: Property) => {
           if (isBoolean(member.type)) {
             boolBytes++;
             return 0;
@@ -207,8 +212,8 @@ class FASSTransform extends Visitor {
           } else if (isStruct(member.type)) {
             const struct = this.schema.name == stripNull(member.type) ? this.schema : this.schemas.find((v) => v.name == member.type);
             return 4 - 2 * Number(struct.static);
-          } else if (member.node.decorators.some((v) => (v.name as IdentifierExpression).text == "bytes")) {
-            return 3
+          } else if (member.node.decorators?.some((v) => (v.name as IdentifierExpression).text == "bytes")) {
+            return 3;
           } else {
             return 4;
           }
@@ -218,12 +223,18 @@ class FASSTransform extends Visitor {
       });
 
     let offset = 0;
-    const generate = (schema: Schema, n: number = 0, path: string[] = []) => {
+
+    const nc = new Map<string, number>();
+
+    nc.set("struct", -1); // Struct index
+    nc.set("n", -1); // Temporary variable index
+
+    const generate = (schema: Schema, path: string[] = []) => {
       const prettyPath = path.join(".");
       for (const member of schema.members) {
         const memberName = member.alias || member.name;
         const prettyName = prettyPath ? prettyPath + "." + memberName : memberName;
-        const structRef = prettyPath ? ["s" + n, "s" + n] : ["input", "output"];
+        const structRef = prettyPath ? ["s" + Math.max(0, nc.get("struct")), "s" + Math.max(0, nc.get("struct"))] : ["input", "output"];
         const memberNullable = member.node.type.isNullable;
 
         if (member.value) {
@@ -244,141 +255,82 @@ class FASSTransform extends Visitor {
           INITIALIZE += `  store<nonnull<${member.type}>>(changetype<usize>(this), changetype<string>(__new(0, idof<string>())), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
         }
 
-        console.log("mem: " + prettyName)
+        console.log("mem: " + prettyName);
         if (isBoolean(member.type)) {
           console.log("bool")
           if (boolBytes == 1) {
-            SIZE += member.byteSize + " + ";
+            offsets.push(member.byteSize);
             SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}")), ${offset});  // ${prettyName}\n`;
             DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
             offset += member.byteSize;
           } else {
-            SIZE += member.byteSize + " + ";
+            offsets.push(member.byteSize);
             SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}")), ${offset});  // ${prettyName}\n`;
             DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
             offset += member.byteSize;
           }
         } else if (isPrimitive(member.type)) {
           console.log("primitive")
-          SIZE += member.byteSize + " + ";
+            offsets.push(member.byteSize);
           SERIALIZE += `  store<${member.type}>(output, load<${member.type}>(${structRef[0]}, offsetof<${schema.name}>("${member.name}")), ${offset});  // ${prettyName}\n`;
           DESERIALIZE += `  store<${member.type}>(${structRef[1]}, load<${member.type}>(input, ${offset}), offsetof<${schema.name}>("${member.name}"));  // ${prettyName}\n`;
           offset += member.byteSize;
         } else if (isString(member.type)) {
           console.log("string")
           let bodyBytes = 0;
-          const hasSize = member.node.decorators.some((v) => {
+          const hasSize = member.node.decorators ? member.node.decorators.some((v) => {
             if ((v.name as IdentifierExpression).text == "bytes") {
               bodyBytes = 2 * parseInt(i64_to_string((v.args[0] as IntegerLiteralExpression).value));
               return true;
             }
             return false;
-          });
+          }) : false;
 
           if (hasSize) {
-            const headerBytes = 2 + 2 * Number(bodyBytes > 65535);
-            console.log("Header bytes: " + headerBytes)
-            console.log("Body bytes:" + bodyBytes)
-            // 16 bit header
-            member.byteSize = bodyBytes; // + headerBytes;
-            // offsets[1] += headerBytes;
-            // if (headerBytes == 2) {
-            //   SERIALIZE +=
-            // }
-            let imOffset = 0;
-            if (bodyBytes <= 64) {
-              while (bodyBytes >= 8) {
-                SERIALIZE += `  store<u64>(output, load<u64>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u64>(${structRef[1]}, load<u64>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 8;
-                imOffset += 8;
-                offset += 8;
-                SIZE += "8 + ";
-              }
-              if (bodyBytes >= 4) {
-                SERIALIZE += `  store<u32>(output, load<u32>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u32>(${structRef[1]}, load<u32>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 4;
-                imOffset += 4;
-                offset += 4;
-                SIZE += "4 + ";
-              }
-              if (bodyBytes >= 2) {
-                SERIALIZE += `  store<u16>(output, load<u16>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u16>(${structRef[1]}, load<u16>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 2;
-                imOffset += 2;
-                offset += 2;
-                SIZE += "2 + ";
-              }
-              if (bodyBytes >= 1) {
-                SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 1;
-                imOffset += 1;
-                offset += 1;
-                SIZE += "1 + ";
-              }
-            } else {
-              SERIALIZE += `  memory.copy(output, ${structRef[0]}, ${bodyBytes}); // ${prettyName}\n`;
-            }
-          } else {
-            SIZE += "this." + member.name + ".length << 1" + " + ";
-            this.schema.static = false;
-          }
-        } else if (isStaticArray(member.type)) {
-          console.log("staticarray")
-          let bodyBytes = 0;
-          const hasSize = member.node.decorators.some((v) => {
-            if ((v.name as IdentifierExpression).text == "bytes") {
-              bodyBytes = parseInt(i64_to_string((v.args[0] as IntegerLiteralExpression).value));
-              return true;
-            }
-            return false;
-          });
-
-          if (hasSize) {
-            const headerBytes = 2 + 2 * Number(bodyBytes > 65535);
-            console.log("Header bytes: " + headerBytes)
-            // 16 bit header
             member.byteSize = bodyBytes;
             let imOffset = 0;
-            if (bodyBytes < 64) {
-              while (bodyBytes >= 8) {
-                SERIALIZE += `  store<u64>(output, load<u64>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u64>(${structRef[1]}, load<u64>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 8;
-                imOffset += 8;
-                offset += 8;
-                SIZE += "8 + ";
-              }
-              if (bodyBytes >= 4) {
-                SERIALIZE += `  store<u32>(output, load<u32>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u32>(${structRef[1]}, load<u32>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 4;
-                imOffset += 4;
-                offset += 4;
-                SIZE += "4 + ";
-              }
-              if (bodyBytes >= 2) {
-                SERIALIZE += `  store<u16>(output, load<u16>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u16>(${structRef[1]}, load<u16>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 2;
-                imOffset += 2;
-                offset += 2;
-                SIZE += "2 + ";
-              }
-              if (bodyBytes >= 1) {
-                SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
-                DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
-                bodyBytes -= 1;
-                imOffset += 1;
-                offset += 1;
-                SIZE += "1 + ";
-              }
-            } else {
-              this.schema.static = false;
+            offsets.push(bodyBytes);
+
+            while (bodyBytes >= 8) {
+              SERIALIZE += `  store<u64>(output, load<u64>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+              DESERIALIZE += `  store<u64>(${structRef[1]}, load<u64>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+              bodyBytes -= 8;
+              imOffset += 8;
+              offset += 8;
             }
+            if (bodyBytes >= 4) {
+              SERIALIZE += `  store<u32>(output, load<u32>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+              DESERIALIZE += `  store<u32>(${structRef[1]}, load<u32>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+              bodyBytes -= 4;
+              imOffset += 4;
+              offset += 4;
+            }
+            if (bodyBytes >= 2) {
+              SERIALIZE += `  store<u16>(output, load<u16>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+              DESERIALIZE += `  store<u16>(${structRef[1]}, load<u16>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+              bodyBytes -= 2;
+              imOffset += 2;
+              offset += 2;
+            }
+            if (bodyBytes >= 1) {
+              SERIALIZE += `  store<u8>(output, load<u8>(${structRef[0]}, offsetof<${schema.name}>("${member.name}") + ${imOffset}), ${offset}); // ${prettyName}\n`;
+              DESERIALIZE += `  store<u8>(${structRef[1]}, load<u8>(input, ${offset}), offsetof<${schema.name}>("${member.name}") + ${imOffset})); // ${prettyName}\n`;
+              bodyBytes -= 1;
+              imOffset += 1;
+              offset += 1;
+            }
+          } else {
+            const prefix = nc.get("n") == -1 ? "let " : " ";
+
+            nc.set("n", Math.max(0, nc.get("n")));
+            // TODO: Decide if FASS should support 32 bit headers
+            SERIALIZE += `  ${prefix}n${nc.get("n")} = changetype<OBJECT>(load<usize>(${structRef[0]} + offsetof<${schema.name}>("${member.name}")) - TOTAL_OVERHEAD).rtSize;\n`;
+            SERIALIZE += `  store<u16>(output, n${nc.get("n")}, ${offset});\n`
+            offset += 2;
+
+            SERIALIZE += `  memory.copy(output + ${offset}, ${structRef[0]} + offsetof<${schema.name}>("${member.name}"), n${nc.get("n")}); // ${prettyName}\n`;
+            DESERIALIZE += `  memory.copy(output + offsetof<${schema.name}>("${member.name}"), ${structRef[0]} + ${offset}, load<u16>(input, ${offset - 2})); // ${prettyName}\n`;
+            offsets.push(`changetype<OBJECT>(load<usize>(changetype<usize>(this) + offsetof<${schema.name}>("${member.name}")) - TOTAL_OVERHEAD).rtSize`);
           }
         } else {
           console.log("Struct: " + member.type);
@@ -390,10 +342,19 @@ class FASSTransform extends Visitor {
           if (circular) {
             console.log("Circular: " + member.type);
           } else {
-            SERIALIZE += `  const s${++n} = load<usize>(${structRef[0]}, offsetof<${schema.name}>("${member.name}"));\n`;
-            DESERIALIZE += `  const s${n} = load<usize>(${structRef[1]}, offsetof<${schema.name}>("${member.name}"));\n`;
+            if (!schema.static) {
+              nc.set("struct", (nc.get("struct") || 0) + 1);
+              SERIALIZE += `  const s${nc.get("struct")} = load<usize>(${structRef[0]}, offsetof<${schema.name}>("${member.name}"));\n`;
+              DESERIALIZE += `  const s${nc.get("struct")} = load<usize>(${structRef[1]}, offsetof<${schema.name}>("${member.name}"));\n`;
+            } else {
+              const prefix = nc.get("struct") == -1 ? "let " : "";
+
+              nc.set("struct", Math.max(0, nc.get("struct")));
+              SERIALIZE += `  ${prefix}s${nc.get("struct")} = load<usize>(${structRef[0]}, offsetof<${schema.name}>("${member.name}"));\n`;
+              DESERIALIZE += `  ${prefix}s${nc.get("struct")} = load<usize>(${structRef[1]}, offsetof<${schema.name}>("${member.name}"));\n`;
+            }
             path.push(member.name);
-            generate(struct, n, path);
+            generate(struct, path);
             path.pop();
           }
         }
@@ -405,7 +366,8 @@ class FASSTransform extends Visitor {
     indentDec();
     DESERIALIZE += `}\n`; // Close function
     SERIALIZE += `}\n`; // Close function
-    SIZE = SIZE.slice(0, SIZE.length - 3) + `;\n}\n`; // Close function
+    SIZE += offsets.join(" + ") + ";\n"
+    SIZE += "}\n"; // Close function
     INITIALIZE += `  return this;\n}\n`; // Close function
 
     if (process.env["DEBUG"]) {
@@ -694,7 +656,7 @@ function isStruct(type: string): boolean {
 }
 
 function isString(type: string) {
-  return type.startsWith("string");
+  return stripNull(type) == "string" || stripNull(type) == "String";
 }
 
 function isStaticArray(type: string): boolean {
