@@ -3040,6 +3040,91 @@
   local.get $i
   i32.store8 offset=8
  )
+ (func $assembly/test/Bools#set:j (param $this i32) (param $j i32)
+  local.get $this
+  local.get $j
+  i32.store8 offset=9
+ )
+ (func $assembly/test/Bools#set:k (param $this i32) (param $k i32)
+  local.get $this
+  local.get $k
+  i32.store8 offset=10
+ )
+ (func $assembly/test/Bools#set:l (param $this i32) (param $l i32)
+  local.get $this
+  local.get $l
+  i32.store8 offset=11
+ )
+ (func $assembly/test/Bools#set:m (param $this i32) (param $m i32)
+  local.get $this
+  local.get $m
+  i32.store8 offset=12
+ )
+ (func $assembly/test/Bools#set:n (param $this i32) (param $n i32)
+  local.get $this
+  local.get $n
+  i32.store8 offset=13
+ )
+ (func $assembly/test/Bools#set:o (param $this i32) (param $o i32)
+  local.get $this
+  local.get $o
+  i32.store8 offset=14
+ )
+ (func $assembly/test/Bools#set:p (param $this i32) (param $p i32)
+  local.get $this
+  local.get $p
+  i32.store8 offset=15
+ )
+ (func $assembly/test/Bools#set:q (param $this i32) (param $q i32)
+  local.get $this
+  local.get $q
+  i32.store8 offset=16
+ )
+ (func $assembly/test/Bools#set:r (param $this i32) (param $r i32)
+  local.get $this
+  local.get $r
+  i32.store8 offset=17
+ )
+ (func $assembly/test/Bools#set:s (param $this i32) (param $s i32)
+  local.get $this
+  local.get $s
+  i32.store8 offset=18
+ )
+ (func $assembly/test/Bools#set:t (param $this i32) (param $t i32)
+  local.get $this
+  local.get $t
+  i32.store8 offset=19
+ )
+ (func $assembly/test/Bools#set:u (param $this i32) (param $u i32)
+  local.get $this
+  local.get $u
+  i32.store8 offset=20
+ )
+ (func $assembly/test/Bools#set:v (param $this i32) (param $v i32)
+  local.get $this
+  local.get $v
+  i32.store8 offset=21
+ )
+ (func $assembly/test/Bools#set:w (param $this i32) (param $w i32)
+  local.get $this
+  local.get $w
+  i32.store8 offset=22
+ )
+ (func $assembly/test/Bools#set:x (param $this i32) (param $x i32)
+  local.get $this
+  local.get $x
+  i32.store8 offset=23
+ )
+ (func $assembly/test/Bools#set:y (param $this i32) (param $y i32)
+  local.get $this
+  local.get $y
+  i32.store8 offset=24
+ )
+ (func $assembly/test/Bools#set:z (param $this i32) (param $z i32)
+  local.get $this
+  local.get $z
+  i32.store8 offset=25
+ )
  (func $~lib/rt/itcms/Object#get:rtSize (param $this i32) (result i32)
   local.get $this
   i32.load offset=16
@@ -5031,7 +5116,7 @@
   i32.eqz
   if
    global.get $~lib/memory/__stack_pointer
-   i32.const 9
+   i32.const 26
    i32.const 6
    call $~lib/rt/itcms/__new
    local.tee $this
@@ -5119,6 +5204,142 @@
   local.get $1
   i32.const 1
   call $assembly/test/Bools#set:i
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:j
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:k
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:l
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:m
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:n
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:o
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:p
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:q
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:r
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:s
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:t
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:u
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:v
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:w
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:x
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 1
+  call $assembly/test/Bools#set:y
+  local.get $this
+  local.set $1
+  global.get $~lib/memory/__stack_pointer
+  local.get $1
+  i32.store offset=4
+  local.get $1
+  i32.const 0
+  call $assembly/test/Bools#set:z
   local.get $this
   local.set $1
   global.get $~lib/memory/__stack_pointer
@@ -6172,6 +6393,7 @@
   (local $35 i32)
   (local $36 i32)
   (local $37 i32)
+  (local $38 i32)
   global.get $~lib/memory/__stack_pointer
   i32.const 76
   i32.sub
@@ -6187,11 +6409,11 @@
   call $assembly/test/Bools#constructor
   global.set $assembly/test/b1
   i32.const 1824
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=4
-  local.get $37
+  local.get $38
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Bools>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/b1
@@ -6219,7 +6441,7 @@
    i32.store offset=16
    local.get $0
    local.set $3
-   i32.const 182
+   i32.const 522
    local.set $4
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
    local.get $4
@@ -6380,6 +6602,227 @@
    i32.load8_u offset=8
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570604476923948
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=9
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570608771891244
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=10
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570613066858540
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=11
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570617361825836
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=12
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570621656793132
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=13
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570625951760428
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=14
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570630246727724
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=15
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570634541695020
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=16
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570638836662316
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=17
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570643131629612
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=18
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570647426596908
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=19
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570651721564204
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=20
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570656016531500
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=21
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570660311498796
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=22
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570664606466092
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=23
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570668901433388
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=24
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570673196400684
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $3
+   i32.load8_u offset=25
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
    i32.const 125
    i32.store16
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6408,17 +6851,17 @@
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Bools>|inlined.0
   end
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=8
-  local.get $37
+  local.get $38
   call $~lib/string/String.__concat
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store
-  local.get $37
+  local.get $38
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.serialize<assembly/test/Bools>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -6440,7 +6883,9 @@
     local.get $10
     local.tee $11
     i32.store offset=28
+    i32.const 16
     i32.const 8
+    i32.add
     i32.const 8
     i32.add
     br $assembly/test/Bools#__FASS_SIZE|inlined.0
@@ -6462,7 +6907,7 @@
    i32.const 1
    i32.and
    i32.const 0
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    local.get $14
@@ -6470,7 +6915,7 @@
    i32.const 1
    i32.and
    i32.const 1
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
@@ -6479,7 +6924,7 @@
    i32.const 1
    i32.and
    i32.const 2
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
@@ -6488,7 +6933,7 @@
    i32.const 1
    i32.and
    i32.const 3
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
@@ -6497,7 +6942,7 @@
    i32.const 1
    i32.and
    i32.const 4
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
@@ -6506,7 +6951,7 @@
    i32.const 1
    i32.and
    i32.const 5
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
@@ -6515,7 +6960,7 @@
    i32.const 1
    i32.and
    i32.const 6
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
@@ -6524,49 +6969,203 @@
    i32.const 1
    i32.and
    i32.const 7
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shl
    i32.or
-   i32.store8
-   local.get $15
    local.get $14
    i32.load8_u offset=8
    i32.const 1
    i32.and
    i32.const 8
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=9
+   i32.const 1
+   i32.and
+   i32.const 9
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=10
+   i32.const 1
+   i32.and
+   i32.const 10
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=11
+   i32.const 1
+   i32.and
+   i32.const 11
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=12
+   i32.const 1
+   i32.and
+   i32.const 12
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=13
+   i32.const 1
+   i32.and
+   i32.const 13
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=14
+   i32.const 1
+   i32.and
+   i32.const 14
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=15
+   i32.const 1
+   i32.and
+   i32.const 15
+   i32.const 15
+   i32.and
+   i32.shl
+   i32.or
+   i32.store16
+   local.get $15
+   local.get $14
+   i32.load8_u offset=16
+   i32.const 1
+   i32.and
+   i32.const 16
    i32.const 7
    i32.and
    i32.shl
-   i32.store8 offset=1
+   local.get $14
+   i32.load8_u offset=17
+   i32.const 1
+   i32.and
+   i32.const 17
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=18
+   i32.const 1
+   i32.and
+   i32.const 18
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=19
+   i32.const 1
+   i32.and
+   i32.const 19
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=20
+   i32.const 1
+   i32.and
+   i32.const 20
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=21
+   i32.const 1
+   i32.and
+   i32.const 21
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=22
+   i32.const 1
+   i32.and
+   i32.const 22
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   local.get $14
+   i32.load8_u offset=23
+   i32.const 1
+   i32.and
+   i32.const 23
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   i32.store8 offset=2
+   local.get $15
+   local.get $14
+   i32.load8_u offset=24
+   i32.const 1
+   i32.and
+   i32.const 24
+   i32.const 7
+   i32.and
+   i32.shl
+   local.get $14
+   i32.load8_u offset=25
+   i32.const 1
+   i32.and
+   i32.const 25
+   i32.const 7
+   i32.and
+   i32.shl
+   i32.or
+   i32.store8 offset=3
    local.get $12
    br $assembly/index/FASS.serialize<assembly/test/Bools>|inlined.0
   end
   global.set $assembly/test/b2
   i32.const 4992
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=4
-  local.get $37
+  local.get $38
   global.get $assembly/test/b2
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=40
-  local.get $37
+  local.get $38
   call $assembly/test/visualise
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=8
-  local.get $37
+  local.get $38
   call $~lib/string/String.__concat
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store
-  local.get $37
+  local.get $38
   call $~lib/wasi_console/wasi_console.log
   block $assembly/index/FASS.deserialize<assembly/test/Bools>|inlined.0 (result i32)
    global.get $~lib/memory/__stack_pointer
@@ -6602,7 +7201,7 @@
    i32.const 1
    drop
    global.get $~lib/memory/__stack_pointer
-   i32.const 9
+   i32.const 26
    i32.const 6
    call $~lib/rt/itcms/__new
    local.tee $21
@@ -6640,6 +7239,57 @@
     i32.const 1
     i32.store8 offset=8
     local.get $22
+    i32.const 0
+    i32.store8 offset=9
+    local.get $22
+    i32.const 1
+    i32.store8 offset=10
+    local.get $22
+    i32.const 0
+    i32.store8 offset=11
+    local.get $22
+    i32.const 1
+    i32.store8 offset=12
+    local.get $22
+    i32.const 0
+    i32.store8 offset=13
+    local.get $22
+    i32.const 1
+    i32.store8 offset=14
+    local.get $22
+    i32.const 0
+    i32.store8 offset=15
+    local.get $22
+    i32.const 1
+    i32.store8 offset=16
+    local.get $22
+    i32.const 0
+    i32.store8 offset=17
+    local.get $22
+    i32.const 1
+    i32.store8 offset=18
+    local.get $22
+    i32.const 0
+    i32.store8 offset=19
+    local.get $22
+    i32.const 1
+    i32.store8 offset=20
+    local.get $22
+    i32.const 0
+    i32.store8 offset=21
+    local.get $22
+    i32.const 1
+    i32.store8 offset=22
+    local.get $22
+    i32.const 0
+    i32.store8 offset=23
+    local.get $22
+    i32.const 1
+    i32.store8 offset=24
+    local.get $22
+    i32.const 0
+    i32.store8 offset=25
+    local.get $22
     br $assembly/test/Bools#__FASS_INITIALIZE|inlined.0
    end
    drop
@@ -6652,12 +7302,12 @@
    local.get $21
    local.set $25
    local.get $24
-   i32.load8_u
+   i32.load16_u
    local.set $26
    local.get $25
    local.get $26
    i32.const 0
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6666,7 +7316,7 @@
    local.get $25
    local.get $26
    i32.const 1
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6675,7 +7325,7 @@
    local.get $25
    local.get $26
    i32.const 2
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6684,7 +7334,7 @@
    local.get $25
    local.get $26
    i32.const 3
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6693,7 +7343,7 @@
    local.get $25
    local.get $26
    i32.const 4
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6702,7 +7352,7 @@
    local.get $25
    local.get $26
    i32.const 5
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6711,7 +7361,7 @@
    local.get $25
    local.get $26
    i32.const 6
-   i32.const 7
+   i32.const 15
    i32.and
    i32.shr_u
    i32.const 1
@@ -6720,6 +7370,153 @@
    local.get $25
    local.get $26
    i32.const 7
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 8
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 9
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 10
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 11
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 12
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 13
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 14
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $26
+   i32.const 15
+   i32.const 15
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $24
+   i32.load8_u offset=2
+   local.set $27
+   local.get $25
+   local.get $27
+   i32.const 16
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 17
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 18
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 19
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 20
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 21
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 22
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 23
    i32.const 7
    i32.and
    i32.shr_u
@@ -6727,11 +7524,20 @@
    i32.and
    i32.store8
    local.get $24
-   i32.load8_u offset=1
-   local.set $26
+   i32.load8_u offset=3
+   local.set $27
    local.get $25
-   local.get $26
-   i32.const 8
+   local.get $27
+   i32.const 24
+   i32.const 7
+   i32.and
+   i32.shr_u
+   i32.const 1
+   i32.and
+   i32.store8
+   local.get $25
+   local.get $27
+   i32.const 25
    i32.const 7
    i32.and
    i32.shr_u
@@ -6743,18 +7549,18 @@
   end
   global.set $assembly/test/b3
   i32.const 6896
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=4
-  local.get $37
+  local.get $38
   block $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Bools>|inlined.1 (result i32)
    global.get $~lib/memory/__stack_pointer
    global.get $assembly/test/b3
-   local.tee $27
+   local.tee $28
    i32.store offset=64
    i32.const 0
-   local.set $28
+   local.set $29
    i32.const 0
    drop
    i32.const 0
@@ -6770,15 +7576,15 @@
    i32.const 1
    drop
    global.get $~lib/memory/__stack_pointer
-   local.get $27
-   local.tee $29
+   local.get $28
+   local.tee $30
    i32.store offset=68
-   local.get $27
-   local.set $30
-   i32.const 182
+   local.get $28
    local.set $31
+   i32.const 522
+   local.set $32
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
-   local.get $31
+   local.get $32
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.stackSize
    global.get $~lib/json-as/lib/as-bs/bs.stackSize
@@ -6786,11 +7592,11 @@
    i32.gt_u
    if
     block $~lib/json-as/lib/as-bs/nextPowerOf2|inlined.3 (result i32)
-     local.get $31
-     local.set $32
+     local.get $32
+     local.set $33
      i32.const 1
      i32.const 32
-     local.get $32
+     local.get $33
      i32.const 1
      i32.sub
      i32.clz
@@ -6798,24 +7604,24 @@
      i32.shl
      br $~lib/json-as/lib/as-bs/nextPowerOf2|inlined.3
     end
-    local.set $33
+    local.set $34
     global.get $~lib/json-as/lib/as-bs/bs.bufferSize
-    local.get $33
+    local.get $34
     i32.add
     global.set $~lib/json-as/lib/as-bs/bs.bufferSize
     global.get $~lib/memory/__stack_pointer
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     global.get $~lib/json-as/lib/as-bs/bs.bufferSize
     call $~lib/rt/itcms/__renew
-    local.tee $34
+    local.tee $35
     i32.store offset=72
     global.get $~lib/json-as/lib/as-bs/bs.offset
-    local.get $34
+    local.get $35
     i32.add
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     i32.sub
     global.set $~lib/json-as/lib/as-bs/bs.offset
-    local.get $34
+    local.get $35
     global.set $~lib/json-as/lib/as-bs/bs.buffer
    end
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6828,7 +7634,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6841,7 +7647,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=1
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6854,7 +7660,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=2
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6867,7 +7673,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=3
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6880,7 +7686,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=4
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6893,7 +7699,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=5
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6906,7 +7712,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=6
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6919,7 +7725,7 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=7
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
@@ -6932,8 +7738,229 @@
    i32.const 10
    i32.add
    global.set $~lib/json-as/lib/as-bs/bs.offset
-   local.get $30
+   local.get $31
    i32.load8_u offset=8
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570604476923948
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=9
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570608771891244
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=10
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570613066858540
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=11
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570617361825836
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=12
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570621656793132
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=13
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570625951760428
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=14
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570630246727724
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=15
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570634541695020
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=16
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570638836662316
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=17
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570643131629612
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=18
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570647426596908
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=19
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570651721564204
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=20
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570656016531500
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=21
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570660311498796
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=22
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570664606466092
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=23
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570668901433388
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=24
+   call $~lib/json-as/assembly/index/JSON.__serialize<bool>
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i64.const 9570673196400684
+   i64.store
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 58
+   i32.store16 offset=8
+   global.get $~lib/json-as/lib/as-bs/bs.offset
+   i32.const 10
+   i32.add
+   global.set $~lib/json-as/lib/as-bs/bs.offset
+   local.get $31
+   i32.load8_u offset=25
    call $~lib/json-as/assembly/index/JSON.__serialize<bool>
    global.get $~lib/json-as/lib/as-bs/bs.offset
    i32.const 125
@@ -6946,35 +7973,35 @@
     global.get $~lib/json-as/lib/as-bs/bs.offset
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     i32.sub
-    local.set $35
-    local.get $35
-    i32.const 2
-    call $~lib/rt/itcms/__new
     local.set $36
     local.get $36
+    i32.const 2
+    call $~lib/rt/itcms/__new
+    local.set $37
+    local.get $37
     global.get $~lib/json-as/lib/as-bs/bs.buffer
-    local.get $35
+    local.get $36
     memory.copy
     global.get $~lib/json-as/lib/as-bs/bs.buffer
     global.set $~lib/json-as/lib/as-bs/bs.offset
     i32.const 0
     global.set $~lib/json-as/lib/as-bs/bs.stackSize
-    local.get $36
+    local.get $37
     br $~lib/json-as/lib/as-bs/bs.out<~lib/string/String>|inlined.1
    end
    br $~lib/json-as/assembly/index/JSON.stringify<assembly/test/Bools>|inlined.1
   end
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store offset=8
-  local.get $37
+  local.get $38
   call $~lib/string/String.__concat
-  local.set $37
+  local.set $38
   global.get $~lib/memory/__stack_pointer
-  local.get $37
+  local.get $38
   i32.store
-  local.get $37
+  local.get $38
   call $~lib/wasi_console/wasi_console.log
   global.get $~lib/memory/__stack_pointer
   i32.const 76

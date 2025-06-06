@@ -204,13 +204,23 @@ class Bools {
   public g: bool = true;
   public h: bool = false;
   public i: bool = true;
-  // public j: bool = false;
-  // public k: bool = true;
-  // public l: bool = false;
-  // public m: bool = true;
-  // public n: bool = false;
-  // public o: bool = true;
-  // public p: bool = false;
+  public j: bool = false;
+  public k: bool = true;
+  public l: bool = false;
+  public m: bool = true;
+  public n: bool = false;
+  public o: bool = true;
+  public p: bool = false;
+  public q: bool = true;
+  public r: bool = false;
+  public s: bool = true;
+  public t: bool = false;
+  public u: bool = true;
+  public v: bool = false;
+  public w: bool = true;
+  public x: bool = false;
+  public y: bool = true;
+  public z: bool = false;
 }
 
 const b1 = new Bools();
