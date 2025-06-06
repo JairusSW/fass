@@ -30,7 +30,7 @@
     "@types/node": "^22.13.10",
     "assemblyscript": "^0.27.35",
     "assemblyscript-prettier": "^3.0.1",
-    "json-as": "^1.0.7",
+    "json-as": "^1.1.15-preview.1",
     "prettier": "^3.5.3",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
