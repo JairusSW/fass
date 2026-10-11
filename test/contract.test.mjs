@@ -7,7 +7,7 @@ const hex='2a000000000000000000803f0000004000004040e803021e0006240003014a6169727
 test('Player has exact packed head and borrowed values',()=>{
  const c=compile(readFileSync('examples/player.fass','utf8'));const bytes=Uint8Array.from(Buffer.from(hex,'hex'));
  assert.match(c.report,/Player head: 30 bytes/);const doc=openBuffers(bytes,c.schema,true),r=doc.root();assert.equal(r.field('id').scalar(),42n);assert.equal(r.field('position').record().field('y').scalar(),2);assert.equal(r.field('name').string(),'Jairus');assert.equal(r.field('scores').array().at(2).scalar(),300);r.field('health').setScalar(123);assert.equal(bytes[20],123);assert.equal(r.field('active').scalar(),true);
- writeFileSync('fixtures/player.fsc',c.schema);writeFileSync('fixtures/player.bin',Buffer.from(hex,'hex'));
+
 });
 test('A.B stays local and selected corruption is rejected',()=>{
  const c=compile('message Foo { 1 A: Bar = {B:1} } struct Bar { 1 B: u32 } struct Unrelated {1 C:u32}');const schema=c.schema.slice(),s=openSchema(schema),v=s.dv;const last=s.entry(1,s.count(1)-1);v.setUint32(last,0xffffffff,true);
