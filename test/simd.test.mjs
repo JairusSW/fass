@@ -1,14 +1,14 @@
-import { test } from "node:test";
+import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-test("SIMD and SWAR validate exact UTF-8 spans and sum unsigned lanes with safe tails", async () => {
+const modules = [];
+before(async () => {
   mkdirSync(".test-build", { recursive: true });
   writeFileSync(
     ".test-build/kernels.ts",
-    `import {utf8,sumU32Unchecked,sumU32x4Unchecked} from '../assembly/index';export function validate(p:usize,n:u32):bool{return utf8(p,n);}export function sum(p:usize,n:u32):u64{return sumU32Unchecked(p,n);}export function four(p:usize):u64{return sumU32x4Unchecked(p);}`,
+    `import {utf8,sumU32Unchecked,sumU32x4Unchecked,validateStringDescriptors24x4} from '../assembly/index';export function validate(p:usize,n:u32):bool{return utf8(p,n);}export function sum(p:usize,n:u32):u64{return sumU32Unchecked(p,n);}export function four(p:usize):u64{return sumU32x4Unchecked(p);}export function spans(p:usize,n:u32,limit:u32):i32{if(ASC_FEATURE_SIMD)return validateStringDescriptors24x4(v128.load(p),n,limit);return -1;}`,
   );
-  const modules = [];
   for (const feature of ["disable", "enable"]) {
     const path = `.test-build/kernels-${feature}`;
     execFileSync(process.execPath, [
@@ -39,6 +39,8 @@ test("SIMD and SWAR validate exact UTF-8 spans and sum unsigned lanes with safe 
     );
     modules.push(instance.exports);
   }
+});
+test("SIMD and SWAR validate exact UTF-8 spans and sum unsigned lanes with safe tails", async () => {
   const decoder = new TextDecoder("utf-8", { fatal: true }),
     valid = (b) => {
       try {
@@ -123,5 +125,51 @@ test("SIMD and SWAR validate exact UTF-8 spans and sum unsigned lanes with safe 
       assert.equal(w.validate(end - n, n), 1);
     }
     assert.equal(w.validate(end - 1, 2), 0);
+  }
+});
+test("SIMD string descriptor lanes agree with independent scalar bounds checks", async () => {
+  const { instance } = await WebAssembly.instantiate(
+      readFileSync(".test-build/kernels-enable.wasm"),
+      {
+        env: {
+          abort() {
+            throw Error("AS abort");
+          },
+        },
+      },
+    ),
+    w = instance.exports,
+    p = w.__new(16, 0),
+    dv = new DataView(w.memory.buffer);
+  let seed = 42;
+  const rand = () => {
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    return seed >>> 0;
+  };
+  for (let i = 0; i < 2000; i++) {
+    const length = rand() % 0x1000000,
+      limit = i % 2 ? 255 : 100,
+      values = Array.from({ length: 4 }, () => {
+        const count = rand() % 256,
+          offset = count ? 1 + (rand() % Math.max(1, length)) : 0;
+        return { offset, count };
+      });
+    if (i % 5 === 0) values[i % 4] = { offset: 0, count: (rand() % 255) + 1 };
+    if (i % 7 === 0) values[i % 4] = { offset: 1, count: 0 };
+    values.forEach((v, j) =>
+      dv.setUint32(p + j * 4, (v.offset | (v.count << 24)) >>> 0, true),
+    );
+    const expected = values.some((v) => v.count > limit)
+      ? 4
+      : values.some(
+            (v) =>
+              (v.offset === 0) !== (v.count === 0) ||
+              v.offset + v.count > length,
+          )
+        ? 10
+        : 0;
+    assert.equal(w.spans(p, length, limit), expected);
   }
 });

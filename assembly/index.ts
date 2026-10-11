@@ -127,6 +127,26 @@ export function sumU32Unchecked(pointer: usize, count: u32): u64 {
   for (; i < count; i++) total += load<u32>(pointer + i * 4);
   return total;
 }
+/** Four 24-bit-offset / 8-bit-count string descriptors; lengths are added without u32 overflow. Call behind ASC_FEATURE_SIMD. */
+@inline export function validateStringDescriptors24x4(
+  words: v128,
+  length: u32,
+  limit: u32,
+): Code {
+  const offset = v128.and(words, i32x4.splat(0xffffff)),
+    count = i32x4.shr_u(words, 24),
+    zero = i32x4.splat(0);
+  if (limit < 255 && v128.any_true(i32x4.gt_u(count, i32x4.splat(limit))))
+    return Code.BoundExceeded;
+  const empty = v128.xor(i32x4.eq(offset, zero), i32x4.eq(count, zero));
+  if (
+    v128.any_true(
+      v128.or(empty, i32x4.gt_u(i32x4.add(offset, count), i32x4.splat(length))),
+    )
+  )
+    return Code.Malformed;
+  return Code.Ok;
+}
 const P1: u64 = 11400714785074694791,
   P2: u64 = 14029467366897019727,
   P3: u64 = 1609587929392839161,

@@ -112,15 +112,24 @@ export function generateAssemblyscript(bytes: Uint8Array): string {
         const vp = s.plan(s.u32(link)),
           name = td.field(slot).name(),
           method = "get" + name[0].toUpperCase() + name.slice(1);
-        if (s.u8(vp + 1) === 4 && s.u8(vp + 2) === 24 && s.u8(vp + 3) === 8)
+        if (s.u8(vp + 1) === 4 && s.u8(vp + 2) === 24 && s.u8(vp + 3) === 8) {
           out.push(
             `/** Head extent must already be established. High word 0xffffffff reports a Code in the low word. */ @inline static ${method}SpanAt(head:usize,data:usize,length:u32):u64{const word=load<u32>(head+${s.u32(a)}),offset=word&0xffffff,count=word>>>24;${s.u32(vp + 16) < 255 ? `if(count>${s.u32(vp + 16)})return 0xffffffff00000004;` : ""}if((count==0)!=(offset==0)||count>length||offset>length-count)return 0xffffffff0000000a;return (<u64>count<<32)|<u64>(data+offset);}`,
           );
+          if (s.u32(l + 24) === 1) {
+            const offset = s.u32(a),
+              stride = s.u32(l);
+            out.push(
+              `/** Four established consecutive heads; return the selected 24/8 descriptors in lane order. Call behind ASC_FEATURE_SIMD and validate before following. */ @inline static load${name[0].toUpperCase() + name.slice(1)}Descriptors4Unchecked(head:usize):v128{let value=v128.load32_zero(head+${offset});value=v128.load32_lane(head+${stride + offset},value,1);value=v128.load32_lane(head+${2 * stride + offset},value,2);return v128.load32_lane(head+${3 * stride + offset},value,3);}`,
+            );
+          }
+        }
       }
     }
     offsets.sort((a, b) => a - b);
     if (offsets.length) {
       const terms: string[] = [];
+      let block = 0;
       for (let i = 0; i < offsets.length;) {
         if (
           i + 3 < offsets.length &&
@@ -129,6 +138,9 @@ export function generateAssemblyscript(bytes: Uint8Array): string {
           offsets[i + 2] === offsets[i] + 8
         ) {
           terms.push(`sumU32x4Unchecked(head+${offsets[i]})`);
+          out.push(
+            `/** Four consecutive required u32 fields; call only behind ASC_FEATURE_SIMD on an established head. */ @inline static loadU32Block${block++}Unchecked(head:usize):v128{return v128.load(head+${offsets[i]});}`,
+          );
           i += 4;
         } else terms.push(`<u64>load<u32>(head+${offsets[i++]})`);
       }
@@ -150,11 +162,12 @@ export function generateAssemblyscript(bytes: Uint8Array): string {
       at = packed ? "this.offset+index/8" : `this.offset+index*${stride}`,
       guard = `if(this.status!=Code.Ok)return ${k <= 11 ? "0" : "out.status=this.status"};if(index>=this.count){this.status=Code.BoundExceeded;return ${k <= 11 ? "0" : "out.status=this.status"};}`;
     out.push(
-      `export class ArrayPlan${pi} extends Span {writable:bool=false;readOnly:bool=false;private value:ValueView=new ValueView(schema);`,
+      `export class ArrayPlan${pi} extends Span {static readonly STRIDE:u32=${stride};writable:bool=false;readOnly:bool=false;private value:ValueView=new ValueView(schema);`,
     );
     if (k === Kind.Record)
       out.push(
         `@inline atPointer(index:u32):usize{if(this.status!=Code.Ok)return 0;if(index>=this.count){this.status=Code.BoundExceeded;return 0;}return this.data+this.offset+index*${stride};}`,
+        `@inline atBlockPointer(index:u32,count:u32):usize{if(this.status!=Code.Ok)return 0;if(index>this.count||count>this.count-index){this.status=Code.BoundExceeded;return 0;}return this.data+this.offset+index*${stride};}`,
       );
     if (k <= 11)
       out.push(

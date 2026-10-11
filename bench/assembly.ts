@@ -1,5 +1,5 @@
 import { RootView, RowView, ArrayPlan6, Span } from "./rows-assembly";
-import { Code } from "../assembly/index";
+import { Code, validateStringDescriptors24x4 } from "../assembly/index";
 const root = new RootView(),
   rows = new ArrayPlan6(),
   row = new RowView(),
@@ -9,14 +9,69 @@ export function sum(data: usize, length: u32): u64 {
     unreachable();
   let total: u64 = 0;
   const count = rows.count;
-  for (let i: u32 = 0; i < count; i++) {
-    const head = rows.atPointer(i),
-      name = RowView.getNameSpanAt(head, data, length);
-    if (rows.status != Code.Ok || name >> 32 == 0xffffffff) unreachable();
-    total +=
-      RowView.sumU32FieldsUnchecked(head) +
-      (name >> 32) +
-      (name >> 32 ? load<u8>(<usize>name) : 0);
+  if (ASC_FEATURE_SIMD) {
+    let acc = i64x2.splat(0);
+    let i: u32 = 0;
+    for (; count - i >= 4; i += 4) {
+      const head = rows.atBlockPointer(i, 4);
+      if (rows.status != Code.Ok) unreachable();
+      const words = RowView.loadNameDescriptors4Unchecked(head);
+      if (validateStringDescriptors24x4(words, length, 255) != Code.Ok)
+        unreachable();
+      const v0 = RowView.loadU32Block0Unchecked(head),
+        v1 = RowView.loadU32Block0Unchecked(head + ArrayPlan6.STRIDE),
+        v2 = RowView.loadU32Block0Unchecked(head + 2 * ArrayPlan6.STRIDE),
+        v3 = RowView.loadU32Block0Unchecked(head + 3 * ArrayPlan6.STRIDE);
+      acc = i64x2.add(
+        acc,
+        i64x2.add(i64x2.extend_low_i32x4_u(v0), i64x2.extend_high_i32x4_u(v0)),
+      );
+      acc = i64x2.add(
+        acc,
+        i64x2.add(i64x2.extend_low_i32x4_u(v1), i64x2.extend_high_i32x4_u(v1)),
+      );
+      acc = i64x2.add(
+        acc,
+        i64x2.add(i64x2.extend_low_i32x4_u(v2), i64x2.extend_high_i32x4_u(v2)),
+      );
+      acc = i64x2.add(
+        acc,
+        i64x2.add(i64x2.extend_low_i32x4_u(v3), i64x2.extend_high_i32x4_u(v3)),
+      );
+      const w0 = <u32>i32x4.extract_lane(words, 0),
+        w1 = <u32>i32x4.extract_lane(words, 1),
+        w2 = <u32>i32x4.extract_lane(words, 2),
+        w3 = <u32>i32x4.extract_lane(words, 3);
+      total +=
+        <u64>(w0 >>> 24) +
+        (w1 >>> 24) +
+        (w2 >>> 24) +
+        (w3 >>> 24) +
+        (w0 >>> 24 ? load<u8>(data + (w0 & 0xffffff)) : 0) +
+        (w1 >>> 24 ? load<u8>(data + (w1 & 0xffffff)) : 0) +
+        (w2 >>> 24 ? load<u8>(data + (w2 & 0xffffff)) : 0) +
+        (w3 >>> 24 ? load<u8>(data + (w3 & 0xffffff)) : 0);
+    }
+    for (; i < count; i++) {
+      const head = rows.atPointer(i),
+        name = RowView.getNameSpanAt(head, data, length);
+      if (rows.status != Code.Ok || name >> 32 == 0xffffffff) unreachable();
+      total +=
+        RowView.sumU32FieldsUnchecked(head) +
+        (name >> 32) +
+        (name >> 32 ? load<u8>(<usize>name) : 0);
+    }
+    total += <u64>i64x2.extract_lane(acc, 0) + <u64>i64x2.extract_lane(acc, 1);
+  } else {
+    for (let i: u32 = 0; i < count; i++) {
+      const head = rows.atPointer(i),
+        name = RowView.getNameSpanAt(head, data, length);
+      if (rows.status != Code.Ok || name >> 32 == 0xffffffff) unreachable();
+      total +=
+        RowView.sumU32FieldsUnchecked(head) +
+        (name >> 32) +
+        (name >> 32 ? load<u8>(<usize>name) : 0);
+    }
   }
   return total;
 }

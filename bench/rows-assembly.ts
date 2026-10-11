@@ -24,10 +24,13 @@ setY(value:u32):Code{if(this.status!=Code.Ok)return this.status;let c=this.recor
 setZ(value:u32):Code{if(this.status!=Code.Ok)return this.status;let c=this.record.bind(this.data,this.length,1,this.anchor,this.writable,this.readOnly);if(c==Code.Ok)c=this.record.atSlot(3,this.value);if(c!=Code.Ok)return this.status=c;return this.status=this.value.setBits(<u64><u32>value);}
 @inline getNameBytesInto(out:Span):Code{if(this.status!=Code.Ok)return out.status=this.status;return string24(this.data,this.length,this.anchor+16,255,out);}
 /** Head extent must already be established. High word 0xffffffff reports a Code in the low word. */ @inline static getNameSpanAt(head:usize,data:usize,length:u32):u64{const word=load<u32>(head+16),offset=word&0xffffff,count=word>>>24;if((count==0)!=(offset==0)||count>length||offset>length-count)return 0xffffffff0000000a;return (<u64>count<<32)|<u64>(data+offset);}
+/** Four established consecutive heads; return the selected 24/8 descriptors in lane order. Call behind ASC_FEATURE_SIMD and validate before following. */ @inline static loadNameDescriptors4Unchecked(head:usize):v128{let value=v128.load32_zero(head+16);value=v128.load32_lane(head+36,value,1);value=v128.load32_lane(head+56,value,2);return v128.load32_lane(head+76,value,3);}
+/** Four consecutive required u32 fields; call only behind ASC_FEATURE_SIMD on an established head. */ @inline static loadU32Block0Unchecked(head:usize):v128{return v128.load(head+0);}
 /** Supply a head established by this exact generated layout. */ @inline static sumU32FieldsUnchecked(head:usize):u64{return sumU32x4Unchecked(head+0);}
 }
-export class ArrayPlan6 extends Span {writable:bool=false;readOnly:bool=false;private value:ValueView=new ValueView(schema);
+export class ArrayPlan6 extends Span {static readonly STRIDE:u32=20;writable:bool=false;readOnly:bool=false;private value:ValueView=new ValueView(schema);
 @inline atPointer(index:u32):usize{if(this.status!=Code.Ok)return 0;if(index>=this.count){this.status=Code.BoundExceeded;return 0;}return this.data+this.offset+index*20;}
+@inline atBlockPointer(index:u32,count:u32):usize{if(this.status!=Code.Ok)return 0;if(index>this.count||count>this.count-index){this.status=Code.BoundExceeded;return 0;}return this.data+this.offset+index*20;}
 @inline atInto(index:u32,out:Layout1):Code{if(this.status!=Code.Ok)return out.status=this.status;if(index>=this.count){this.status=Code.BoundExceeded;return out.status=this.status;}return out._bind(this.data,this.length,this.offset+index*20,this.writable,this.readOnly);}
 @inline sumU32Fields(index:u32):u64{if(this.status!=Code.Ok)return 0;if(index>=this.count){this.status=Code.BoundExceeded;return 0;}const at=this.data+this.offset+index*20;return sumU32x4Unchecked(at+0);}
 @inline getId(index:u32):u32{if(this.status!=Code.Ok)return 0;if(index>=this.count){this.status=Code.BoundExceeded;return 0;}return load<u32>(this.data+this.offset+index*20+0);}
