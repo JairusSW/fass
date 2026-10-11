@@ -14,6 +14,7 @@ import { xxh64 } from "../hash.js";
 export class Schema {
   bytes: Uint8Array = new Uint8Array();
   dv: DataView = new DataView(new ArrayBuffer(0));
+  generation = 0;
   root = 0;
   directory = 0;
   maxBytes = 0;
@@ -36,6 +37,7 @@ export class Schema {
     this.root = v.getUint32(32, true);
     this.maxBytes = v.getUint32(44, true);
     if (!this.maxBytes) fail(Code.Malformed, Region.Schema, 44);
+    this.generation++;
     return this;
   }
   u32(at: number): number {

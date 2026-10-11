@@ -1,0 +1,4 @@
+namespace Bench;
+struct Point { x:uint; y:uint; z:uint; }
+table Packet { point:Point; points:[Point]; values:[uint]; label:string; }
+root_type Packet;

@@ -1,0 +1,7 @@
+message Packet @max_bytes(65536) {
+  1 point: Point
+  2 points: Point[] @max_count(256)
+  3 values: u32[] @max_count(256)
+  4 label: string @max_bytes(255)
+}
+struct Point {1 x:u32 2 y:u32 3 z:u32}
