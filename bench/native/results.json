@@ -1,0 +1,243 @@
+{
+  "source": {
+    "revision": "cdead4051224a8dc51438127ca3dd717c02f47ba",
+    "trackedChanges": ""
+  },
+  "environment": {
+    "node": "v26.4.0",
+    "cpu": "Apple M4 Max",
+    "v8": "14.6.202.34-node.21",
+    "platform": "darwin",
+    "arch": "arm64",
+    "iterations": 20000,
+    "samples": 9,
+    "fixtures": 16,
+    "rows": 256,
+    "clang": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)",
+    "flatc": "flatc version 25.12.19",
+    "protobuf": "libprotoc 35.1",
+    "simdjson": "4.6.4",
+    "jsonc": "0.19",
+    "assemblyscript": "0.27.36",
+    "flags": {
+      "cpp": "-O3 -DNDEBUG -std=c++17",
+      "c": "-O3 -DNDEBUG",
+      "rust": "release opt-level=3 lto=thin codegen-units=1",
+      "assemblyscript": "--runtime stub --optimize --noAssert --enable/--disable simd"
+    }
+  },
+  "workload": "Same 16 varying buffers, full row checksum; one batched Wasm call per sample. Native FlatBuffers unchecked and verified variants labeled; FASS follows local checked descriptors.",
+  "results": {
+    "AssemblyScript FASS simd / bulk scalar blocks": {
+      "samples": [
+        388.9292,
+        374.10625,
+        368.4333499999999,
+        366.15414999999985,
+        364.52704999999986,
+        363.36875000000003,
+        364.9083499999999,
+        364.9458500000001,
+        368.2146000000003
+      ],
+      "median": 366.15414999999985,
+      "checksum": "542936576000"
+    },
+    "AssemblyScript FASS simd / reusable views": {
+      "samples": [
+        755.7978999999996,
+        748.7416500000002,
+        706.0812499999997,
+        744.0395999999993,
+        749.4666499999994,
+        746.2042000000012,
+        719.6895499999996,
+        735.7937500000006,
+        736.4687499999987
+      ],
+      "median": 744.0395999999993,
+      "checksum": "542936576000"
+    },
+    "AssemblyScript FASS scalar / bulk scalar blocks": {
+      "samples": [
+        393.18124999999924,
+        404.61460000000073,
+        405.3750000000008,
+        409.5646000000002,
+        413.6396000000005,
+        414.0979000000016,
+        413.17920000000186,
+        413.2249999999999,
+        417.1187500000002
+      ],
+      "median": 413.17920000000186,
+      "checksum": "542936576000"
+    },
+    "AssemblyScript FASS scalar / reusable views": {
+      "samples": [
+        758.2520999999986,
+        745.2353999999985,
+        720.7375000000013,
+        733.2854499999996,
+        740.5999999999977,
+        746.1791500000004,
+        755.7124999999985,
+        756.9958500000013,
+        745.41045
+      ],
+      "median": 745.41045,
+      "checksum": "542936576000"
+    },
+    "C++ FlatBuffers unchecked": {
+      "samples": [
+        633.196,
+        584.821,
+        543.115,
+        514.342,
+        505.767,
+        503.569,
+        504.852,
+        504.425,
+        505.667
+      ],
+      "median": 505.767,
+      "checksum": 542936576000
+    },
+    "C++ Protobuf fresh": {
+      "samples": [
+        11854.6,
+        11697.8,
+        11653.1,
+        11720.3,
+        11682.2,
+        11562.6,
+        11593.5,
+        11534,
+        11602.7
+      ],
+      "median": 11653.1,
+      "checksum": 542936576000
+    },
+    "C++ Protobuf reused": {
+      "samples": [
+        4903.29,
+        4875.38,
+        4959.99,
+        5014.89,
+        5008.44,
+        4922.37,
+        4930.35,
+        5084.47,
+        5183.31
+      ],
+      "median": 4959.99,
+      "checksum": 542936576000
+    },
+    "C++ simdjson ondemand": {
+      "samples": [
+        6794.56,
+        6899.7,
+        6750.76,
+        6781.9,
+        6782.21,
+        6743.4,
+        6778.31,
+        6554.13,
+        6756.46
+      ],
+      "median": 6778.31,
+      "checksum": 542936576000
+    },
+    "C json-c DOM": {
+      "samples": [
+        148081.85,
+        148509.9,
+        148239.65,
+        148973.15,
+        149584.45,
+        150532.9,
+        150653.8,
+        151933.35,
+        151190.4
+      ],
+      "checksum": 542936576000,
+      "median": 149584.45
+    },
+    "Rust FlatBuffers unchecked": {
+      "checksum": 542936576000,
+      "median": 787.62085,
+      "samples": [
+        1141.0229,
+        932.16045,
+        834.12705,
+        790.16665,
+        785.35625,
+        784.36875,
+        787.62085,
+        786.3104,
+        786.70835
+      ]
+    },
+    "Rust FlatBuffers verified": {
+      "checksum": 542936576000,
+      "median": 10287.53955,
+      "samples": [
+        10370.9396,
+        10367.05625,
+        10433.4,
+        10263.0292,
+        10243.93125,
+        10287.53955,
+        10285.6479,
+        10290.4979,
+        10183.5771
+      ]
+    },
+    "Rust prost": {
+      "checksum": 542936576000,
+      "median": 10399.95415,
+      "samples": [
+        10309.29165,
+        10491.44585,
+        10401.8625,
+        10404.9604,
+        10461.0271,
+        10370.9979,
+        10343.56665,
+        10325.74375,
+        10399.95415
+      ]
+    },
+    "Rust rmp-serde": {
+      "checksum": 542936576000,
+      "median": 14580.22085,
+      "samples": [
+        14767.2896,
+        14682.6625,
+        14528.40625,
+        14580.22085,
+        14543.1792,
+        14479.4979,
+        14721.8875,
+        14768.59375,
+        14154.49375
+      ]
+    },
+    "Rust serde_json": {
+      "checksum": 542936576000,
+      "median": 24984.625,
+      "samples": [
+        25124.8708,
+        24988.05625,
+        24866.88125,
+        24915.64795,
+        24941.6208,
+        24984.625,
+        24952.05,
+        25057.8021,
+        25299.59375
+      ]
+    }
+  }
+}

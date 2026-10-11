@@ -74,3 +74,33 @@ TypeScript row workload. Native runs use `FASS_BENCH_ROWS` and
 row count. Recorded reports identify the engine, versions, flags and workload.
 Cold caches, x86, additional Wasm engines, large inputs and production workloads
 remain separate measurements.
+
+## Saved warm run
+
+These reports measured revision `cdead40` on Apple M4 Max, v26.4.0 / V8 14.6.202.34-node.21. Nine samples and 16 varying 256-row inputs; native loops use 20,000 messages per sample.
+
+| Native read path                                | ns/message | Competitor time / FASS SIMD time |
+| ----------------------------------------------- | ---------: | -------------------------------: |
+| AssemblyScript FASS simd / bulk scalar blocks   |      366.2 |                            1.00× |
+| AssemblyScript FASS simd / reusable views       |      744.0 |                            2.03× |
+| AssemblyScript FASS scalar / bulk scalar blocks |      413.2 |                            1.13× |
+| AssemblyScript FASS scalar / reusable views     |      745.4 |                            2.04× |
+| C++ FlatBuffers unchecked                       |      505.8 |                            1.38× |
+| C++ Protobuf fresh                              |    11653.1 |                           31.83× |
+| C++ Protobuf reused                             |     4960.0 |                           13.55× |
+| C++ simdjson ondemand                           |     6778.3 |                           18.51× |
+| C json-c DOM                                    |   149584.5 |                          408.53× |
+| Rust FlatBuffers unchecked                      |      787.6 |                            2.15× |
+| Rust FlatBuffers verified                       |    10287.5 |                           28.10× |
+| Rust prost                                      |    10400.0 |                           28.40× |
+| Rust rmp-serde                                  |    14580.2 |                           39.82× |
+| Rust serde_json                                 |    24984.6 |                           68.24× |
+
+The 2× native gate **fails on unchecked C++ FlatBuffers**. The generated
+TypeScript row-read gate passes all four formats in this run. Encoding remains
+below 2× against JSON and Protobuf; direct native vector access is also faster
+than some FASS single-element access paths.
+
+[Native raw samples](native/results.json), [TypeScript row samples](results-typescript.json),
+[access-path samples](results-access.json), and [original baseline](baseline.json)
+include the evidence; they are not cross-platform performance guarantees.
