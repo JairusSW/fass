@@ -8,3 +8,4 @@ export * from './runtime/reflection.js';
 export * from './runtime/verify.js';
 export * from './runtime/materialize.js';
 export * from './runtime/path.js';
+export * from './runtime/mutate.js';

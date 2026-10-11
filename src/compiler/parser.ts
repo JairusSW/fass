@@ -1,5 +1,5 @@
 import {Kind} from '../format.js';
-export interface Type { kind:Kind; name?:string; child?:Type; key?:Type; count?:number; limit?:number; padded?:number; range?:[bigint,bigint]; values?:bigint[]; placement?:number; }
+export interface Type { kind:Kind; name?:string; child?:Type; key?:Type; count?:number; limit?:number; padded?:number; range?:[bigint,bigint]; values?:bigint[]; placement?:number; enumMembers?:{id:number;name:string;value:bigint}[]; }
 export interface Field { id:number; name:string; type:Type; optional:boolean; default?:unknown; }
 export interface Declaration { name:string; fields:Field[]; identity?:string; }
 export interface Source { root:string; maxBytes:number; records:Declaration[]; }
@@ -31,6 +31,7 @@ export function parse(source:string):Source {
     else if(primitives[name])t={kind:primitives[name]};
     else if(enums.has(name))t={...enums.get(name)!};
     else t={kind:Kind.Record,name};
+    annotations(t);
     while(peek()==='[') {take();if(peek()===']') {take();t={kind:Kind.Array,child:t,limit:255};}else {const count=number();expect(']');t={kind:Kind.FixedArray,child:t,count};}}
     annotations(t);return t;
   }
@@ -41,7 +42,7 @@ export function parse(source:string):Source {
     if(/^-?\d+$/.test(t)||/^-?0x/.test(t))return BigInt(t);if(Number.isFinite(Number(t)))return Number(t);throw Error(`Invalid literal ${t}`);
   }
   while(p<tokens.length) {
-    const tag=take();if(tag==='enum') {const name=take();expect(':');const base=take();if(!primitives[base]||primitives[base]>8)throw Error('Integer enum required');expect('{');const values:bigint[]=[];while(peek()!=='}') {take();expect('=');values.push(BigInt(take()));if(peek()===','||peek()===';')take();}take();enums.set(name,{kind:primitives[base],name,values});continue;}
+    const tag=take();if(tag==='enum') {const name=take();expect(':');const base=take();if(!primitives[base]||primitives[base]>8)throw Error('Integer enum required');expect('{');const values:bigint[]=[],enumMembers:{id:number;name:string;value:bigint}[]=[];while(peek()!=='}') {let id=enumMembers.length+1;if(/^\d+$/.test(peek()))id=number();const member=take();expect('=');const value=BigInt(take());values.push(value);enumMembers.push({id,name:member,value});if(peek()===','||peek()===';')take();}take();enums.set(name,{kind:primitives[base],name,values,enumMembers});continue;}
     if(tag!=='struct'&&tag!=='message')throw Error(`Expected struct/message, got ${tag}`);
     const decl:Declaration={name:take(),fields:[]};annotations(undefined,decl);if(tag==='message'){if(root)throw Error('Exactly one message required');root=decl.name;}
     expect('{');while(peek()!=='}') {const id=number();const name=take();let optional=false;if(peek()==='?'){take();optional=true;}expect(':');const t=type();if(peek()==='?'){take();optional=true;}const field:Field={id,name,type:t,optional};if(peek()==='='){take();field.default=literal();}if(peek()===';')take();decl.fields.push(field);}

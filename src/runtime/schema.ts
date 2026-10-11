@@ -1,4 +1,5 @@
 import {Code,Region,Kind,NO_INDEX as N,RECORD_BYTES,extent,fail,view} from '../format.js';
+import {width,bits} from '../format.js';
 import {xxh64} from '../hash.js';
 /** A reusable caller-owned view. Opening does no table traversal or hashing. */
 export class Schema {
@@ -24,6 +25,8 @@ export class Schema {
     else fail(Code.Malformed,Region.Schema,at);if(slot<0)fail(Code.NotFound,Region.Schema,at);return this.u32(l+4)+slot;
   }
   access(field:number):number {const at=this.entry(2,field),kind=this.u8(at+4),flags=this.u8(at+5),p0=this.u8(at+6),p1=this.u8(at+7),d=flags>>4;if(kind<1||kind>17||flags&8)fail(Code.Malformed,Region.Schema,at);if(kind<=10&&(d||p0||p1)||kind===Kind.Bool&&(d||p0>7||p1)||kind===Kind.Record&&(this.u32(at)||d||p0||p1)||kind===Kind.FixedArray&&(d||p0||p1))fail(Code.Malformed,Region.Schema,at);if([12,13,16,17].includes(kind)&&(d>8||p0>32||p1>32||p0+p1>d*8))fail(Code.Malformed,Region.Schema,at);const link=this.entry(3,field),presence=this.u32(link+4);if(!!(flags&1)!==(presence!==N))fail(Code.Malformed,Region.Schema,link);if(presence!==N){const p=this.entry(6,presence),mask=this.u8(p+4);if(!mask||(mask&(mask-1))||this.u8(p+5)||this.u8(p+6)||this.u8(p+7))fail(Code.Malformed,Region.Schema,p);}return at;}
-  plan(index:number):number {const at=this.entry(4,index),k=this.u8(at);if(k<1||k>17||this.u32(at+24)||this.u32(at+4)&~3||this.u8(at+1)>8||this.u8(at+2)>32||this.u8(at+3)>32||this.u8(at+2)+this.u8(at+3)>8*this.u8(at+1))fail(Code.Malformed,Region.Schema,at);return at;}
+  plan(index:number):number {const at=this.entry(4,index),k=this.u8(at);if(k<1||k>17||this.u32(at+24)||this.u32(at+4)&~3||this.u8(at+1)>8||this.u8(at+2)>32||this.u8(at+3)>32||this.u8(at+2)+this.u8(at+3)>8*this.u8(at+1))fail(Code.Malformed,Region.Schema,at);if(k<=11&&(this.u8(at+1)!==width(k)||this.u8(at+2)||this.u8(at+3)||this.u32(at+4)||this.u32(at+8)!==width(k)||this.u32(at+12)||this.u32(at+16)||this.u32(at+20)!==N))fail(Code.Malformed,Region.Schema,at);if(k===Kind.Utf8||k===Kind.Array||k===Kind.Map){const limit=this.u32(at+16),d=this.u8(at+1),o=this.u8(at+2),l=this.u8(at+3);if(this.u32(at+8)!==d||l!==bits(limit)||o!==(limit?bits(this.maxBytes-1):0)||(!limit&&d)||k!==Kind.Array&&this.u32(at+4))fail(Code.Malformed,Region.Schema,at);}
+    if(k===Kind.Array||k===Kind.FixedArray){const flags=this.u32(at+4);if(flags>1||flags&&this.u32(at+12))fail(Code.Malformed,Region.Schema,at);}
+    return at;}
 }
 export function openSchema(bytes:Uint8Array):Schema {return new Schema().open(bytes);}

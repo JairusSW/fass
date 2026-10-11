@@ -2,7 +2,7 @@ import {Code,Kind,Region,fail,NO_INDEX as N} from '../format.js';
 import {Document,RecordView,ValueView} from './value.js';
 import {MapView} from './map.js';
 import {TypeView} from './reflection.js';
-import {encodeInto,BuildOptions} from './build.js';
+import {encodeInto,BuildOptions,FloatBits} from './build.js';
 import {verifyMessage,Limits} from './verify.js';
 /** Explicit conversion to native strings, arrays, records and Map objects. */
 export function decode(doc:Document,limits:Limits={}):Record<string,unknown> {
@@ -22,5 +22,21 @@ export function canonicalizeInto(doc:Document,destination:Uint8Array,scratch:Uin
 }
 /** Explicit migration by stable field IDs. New defaults are initialized by the destination builder. */
 export function migrateInto(doc:Document,targetSchema:Document['schema'],destination:Uint8Array,limits:Limits={}):number {
-  let nodes=0;function record(source:RecordView,targetLayout:number,depth:number):Record<string,unknown>{if(++nodes>(limits.maxNodes??1000000)||depth>(limits.maxDepth??128))fail(Code.WorkLimit,Region.Data);const s=targetSchema,l=s.layout(targetLayout),t=new TypeView(s,s.u32(l+12)),out:Record<string,unknown>={};for(let i=0;i<s.u32(l+8);i++){const fd=t.field(i);let old:ValueView;try{old=source.fieldByID(fd.id);}catch(e){if((e as {code:number}).code===Code.NotFound)continue;throw e;}if(!old.isPresent())continue;const fi=s.slot(targetLayout,i),a=s.access(fi),kind=s.u8(a+4),link=s.entry(3,fi);if(old.kind!==kind)fail(Code.TypeMismatch,Region.Data,old.offset);if(kind===15||kind===16)out[fd.name()]=record(old.record(),s.u32(link),depth+1);else if(kind<=11)out[fd.name()]=old.scalar();else if(kind===12)out[fd.name()]=old.string();else fail(Code.TypeMismatch,Region.Data,old.offset);}return out;}return encodeInto(targetSchema,record(doc.root(),targetSchema.root,0),destination,limits);
+  let nodes=0;const s=targetSchema;
+  function tick(depth:number):void {if(++nodes>(limits.maxNodes??1000000)||depth>(limits.maxDepth??128))fail(Code.WorkLimit,Region.Data);}
+  function record(source:RecordView,targetLayout:number,depth:number):Record<string,unknown> {
+    tick(depth);const l=s.layout(targetLayout),t=new TypeView(s,s.u32(l+12)),out:Record<string,unknown>={};
+    for(let i=0;i<s.u32(l+8);i++){const fd=t.field(i);let old:ValueView;try{old=source.fieldByID(fd.id);}catch(e){if((e as {code:number}).code===Code.NotFound)continue;throw e;}if(!old.isPresent())continue;const fi=s.slot(targetLayout,i),a=s.access(fi),kind=s.u8(a+4),link=s.entry(3,fi);out[fd.name()]=value(old,kind,s.u32(link),depth+1);}
+    return out;
+  }
+  function value(old:ValueView,kind:number,target:number,depth:number):unknown {
+    tick(depth);if(old.kind!==kind)fail(Code.TypeMismatch,Region.Data,old.offset);
+    if(kind===15||kind===16)return record(old.record(),target,depth+1);
+    if(kind===9||kind===10)return new FloatBits(kind,old.scalarBits());
+    if(kind<=11)return old.scalar();if(kind===12)return old.string();
+    if(kind===13||kind===14){const a=old.array(),p=s.plan(target),child=s.u32(p+20),cp=s.plan(child),ck=s.u8(cp);if(a.count>(limits.maxNodes??1000000)-nodes)fail(Code.WorkLimit,Region.Data);return Array.from({length:a.count},(_,i)=>value(a.at(i),ck,ck===15||ck===16?s.u32(cp+20):child,depth+1));}
+    if(kind===17){const m=new MapView().bind(old),mp=s.entry(5,s.u32(s.plan(target)+20)),entryLayout=s.layout(s.u32(mp)),first=s.u32(entryLayout+4),ka=s.access(first),va=s.access(first+1),kt=s.u32(s.entry(3,first)),vt=s.u32(s.entry(3,first+1)),out:unknown[][]=[];if(m.buckets>(limits.maxNodes??1000000)-nodes)fail(Code.WorkLimit,Region.Data);for(let i=0;i<m.buckets;i++)if(doc.bytes[m.controls+i]>=128){const e=m.entry(i);out.push([value(e.atSlot(0),s.u8(ka+4),kt,depth+1),value(e.atSlot(1),s.u8(va+4),vt,depth+1)]);}return out;}
+    fail(Code.TypeMismatch,Region.Data,old.offset);
+  }
+  return encodeInto(targetSchema,record(doc.root(),targetSchema.root,0),destination,limits);
 }

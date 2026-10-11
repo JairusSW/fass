@@ -26,3 +26,17 @@ export function verify(stack:usize,sl:u32,intervals:usize,il:u32):i32{return ver
 export function hash(p:usize,n:u32,seed:u64):u64{return xxh64(p,n,seed);}
 export function marker():usize{return __new(0,0);}
 export function replace(p:usize,n:u32,used:u32):i32{const arena=new Arena(schema,record.data,record.length,used);return arena.replaceBytes(value,p,n);}
+import {Builder} from '../assembly/index';
+const builder=new Builder(schema);
+export function build(data:usize,capacity:u32,stack:usize,stackBytes:u32):i32 {return builder.build(data,capacity,stack,stackBytes);}
+export function builtLength():u32{return builder.used;}
+import {MapWriter,reserveMap,U32Path,openEnvelope,envelopeInto} from '../assembly/index';
+const arena=new Arena(schema,0,0),writer=new MapWriter(map,arena),path=new U32Path(schema),pathRecord=new RecordView(schema);
+export function mapReserve(cap:u32,used:u32):i32{arena.data=record.data;arena.capacity=record.length;arena.used=used;arena.status=Code.Ok;return reserveMap(arena,value,cap,map);}
+export function mapPrepare(p:usize,n:u32,ids:usize,idBytes:u32):i32{return writer.prepare(p,n,ids,idBytes,record);}
+export function mapPublish(stack:usize,sl:u32,intervals:usize,il:u32):i32{return writer.publish(verifier,stack,sl,intervals,il);}
+export function mapDelete(p:usize,n:u32):i32{return writer.delete(p,n);}
+export function pathResolve(names:usize,n:u32,steps:usize,sl:u32):i32{return path.resolve(names,n,steps,sl);}
+export function pathBind():i32{return path.bind(record,ref,pathRecord,value);}
+export function frame(p:usize,n:u32):i32{return envelopeInto(record,p,n);}
+export function openFrame(p:usize,n:u32):i32{return openEnvelope(schema,p,n,record,true);}

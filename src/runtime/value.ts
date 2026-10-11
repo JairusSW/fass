@@ -1,4 +1,4 @@
-import {Kind,Code,Region,NO_INDEX as N,extent,fail,width,view,readWord,writeWord,readSpan} from '../format.js';
+import {Kind,Code,Region,NO_INDEX as N,extent,fail,width,bits,view,readWord,writeWord,readSpan} from '../format.js';
 import {Schema,openSchema} from './schema.js';
 const encoder=new TextEncoder();const decoder=new TextDecoder('utf-8',{fatal:true});
 export type Scalar=number|bigint|boolean;
@@ -28,7 +28,7 @@ export class ValueView {
     const layout=s.layout(record.layout),head=s.u32(layout),relative=this.offset-this.anchor;
     const size=this.kind<=11?width(this.kind):this.kind===Kind.Record?0:this.kind===Kind.FixedArray?s.u32(s.plan(this.target)+8):s.u8(at+5)>>4;
     extent(head,relative,size,Region.Schema);extent(this.doc.bytes.length,this.offset,size,Region.Data);
-    if(this.planIndex!==N){const p=s.plan(this.planIndex);if(s.u8(p)!==this.kind)fail(Code.Malformed,Region.Schema,p);if(this.kind<=11&&(s.u8(p+1)!==width(this.kind)||s.u32(p+8)!==width(this.kind)))fail(Code.Malformed,Region.Schema,p);if([12,13,17].includes(this.kind)&&(s.u8(p+1)!==(s.u8(at+5)>>4)||s.u8(p+2)!==s.u8(at+6)||s.u8(p+3)!==s.u8(at+7)))fail(Code.Malformed,Region.Schema,p);}
+    if(this.planIndex!==N){const p=s.plan(this.planIndex);if(s.u8(p)!==this.kind)fail(Code.Malformed,Region.Schema,p);if(this.kind<=10&&!!(s.u8(at+5)&4)!==(s.u32(p+28)!==N))fail(Code.Malformed,Region.Schema,p);if(this.kind<=11&&(s.u8(p+1)!==width(this.kind)||s.u32(p+8)!==width(this.kind)))fail(Code.Malformed,Region.Schema,p);if([12,13,17].includes(this.kind)&&(s.u8(p+1)!==(s.u8(at+5)>>4)||s.u8(p+2)!==s.u8(at+6)||s.u8(p+3)!==s.u8(at+7)))fail(Code.Malformed,Region.Schema,p);}
     if(this.presence!==N){const p=s.entry(6,this.presence);extent(head,s.u32(p),1,Region.Schema);extent(this.doc.bytes.length,this.anchor+s.u32(p),1,Region.Data);}return this;
   }
   bindPlan(doc:Document,plan:number,offset:number,readOnly=false,bit=0):this {const p=doc.schema.plan(plan);this.doc=doc;this.kind=doc.schema.u8(p);this.offset=offset;this.anchor=offset;this.planIndex=plan;this.target=this.kind===Kind.Record||this.kind===Kind.Ref?doc.schema.u32(p+20):plan;this.field=N;this.presence=N;this.flags=readOnly?2:0;this.bit=bit;this.parentLayout=N;extent(doc.bytes.length,offset,doc.schema.u32(p+8),Region.Data);return this;}
@@ -54,7 +54,7 @@ export class ValueView {
   recordInto(out:RecordView):RecordView {
     this.require();const s=this.doc.schema;if(this.kind!==Kind.Record&&this.kind!==Kind.Ref)fail(Code.TypeMismatch,Region.Data,this.offset);const l=s.layout(this.target);let anchor=this.anchor;
     if(this.kind===Kind.Record){if(this.field!==N){const parent=s.layout(this.parentLayout);if(s.u32(l+24)!==2||s.u32(l+20)!==this.parentLayout||s.u32(l+16)!==s.u32(parent+16)||s.u32(l)!==s.u32(parent))fail(Code.Malformed,Region.Schema,l);}else {if(s.u32(l+24)!==1)fail(Code.Malformed,Region.Schema,l);anchor=this.offset;}}
-    else {if(s.u32(l+24)!==1)fail(Code.Malformed,Region.Schema,l);const d=this.field===N?s.u8(s.plan(this.planIndex)+1):s.u8(s.access(this.field)+5)>>4;anchor=Number(readWord(this.doc.bytes,this.offset,d));if(s.u32(l)&&anchor===0)fail(Code.Malformed,Region.Data,this.offset);}
+    else {if(s.u32(l+24)!==1)fail(Code.Malformed,Region.Schema,l);const d=this.field===N?s.u8(s.plan(this.planIndex)+1):s.u8(s.access(this.field)+5)>>4;const n=readWord(this.doc.bytes,this.offset,d);if(n>>BigInt(bits(s.maxBytes-1))||d!==(s.u32(l)?Math.ceil(bits(s.maxBytes-1)/8):0))fail(Code.Malformed,Region.Data,this.offset);anchor=Number(n);if(s.u32(l)&&anchor===0)fail(Code.Malformed,Region.Data,this.offset);}
     return out.bind(this.doc,this.target,anchor,!!(this.flags&2));
   }
   record():RecordView {return this.recordInto(new RecordView());}
@@ -62,8 +62,9 @@ export class ValueView {
     this.require();if(![12,13,17].includes(this.kind))fail(Code.TypeMismatch,Region.Data,this.offset);const s=this.doc.schema,p=s.plan(this.planIndex);const [offset,count]=readSpan(this.doc.bytes,this.offset,s.u8(p+1),s.u8(p+2),s.u8(p+3),s.u32(p+16));const stride=this.kind===12?1:s.u32(p+12),bytes=this.kind===13&&s.u32(p+4)&1?Math.ceil(count/8):count*stride;
     if(this.kind!==17){if((count===0||bytes===0)&&offset!==0||bytes>0&&offset===0)fail(Code.Malformed,Region.Data,this.offset);extent(this.doc.bytes.length,offset,bytes,Region.Data);}out.offset=offset;out.count=count;return out;
   }
-  bytes():Uint8Array {if(this.kind!==12)fail(Code.TypeMismatch,Region.Data,this.offset);const p=this.spanInto(new Span());return this.doc.bytes.subarray(p.offset,p.offset+p.count);}
-  string():string {try{return decoder.decode(this.bytes());}catch(e){if(e instanceof TypeError)fail(Code.Malformed,Region.Data,this.offset);throw e;}}
+  bytesReadOnlyCopy():Uint8Array {if(this.kind!==12)fail(Code.TypeMismatch,Region.Data,this.offset);const p=this.spanInto(new Span());return this.doc.bytes.slice(p.offset,p.offset+p.count);}
+  bytes():Uint8Array {if(this.flags&2)fail(Code.ReadOnly,Region.Data,this.offset);if(this.kind!==12)fail(Code.TypeMismatch,Region.Data,this.offset);const p=this.spanInto(new Span());return this.doc.bytes.subarray(p.offset,p.offset+p.count);}
+  string():string {try{if(this.kind!==12)fail(Code.TypeMismatch,Region.Data,this.offset);const span=this.spanInto(new Span());return decoder.decode(this.doc.bytes.subarray(span.offset,span.offset+span.count));}catch(e){if(e instanceof TypeError)fail(Code.Malformed,Region.Data,this.offset);throw e;}}
   arrayInto(out:ArrayView):ArrayView {this.require();if(this.kind!==13&&this.kind!==14)fail(Code.TypeMismatch,Region.Data,this.offset);const s=this.doc.schema,p=s.plan(this.planIndex);out.doc=this.doc;out.child=s.u32(p+20);out.stride=s.u32(p+12);out.packed=!!(s.u32(p+4)&1);out.readOnly=!!(this.flags&2);if(this.kind===13){const span=this.spanInto(out);out.offset=span.offset;out.count=span.count;}else {out.offset=this.offset;out.count=s.u32(p+16);extent(this.doc.bytes.length,out.offset,out.packed?Math.ceil(out.count/8):out.count*out.stride,Region.Data);}const child=s.plan(out.child);if(out.packed?s.u8(child)!==Kind.Bool:out.stride!==s.u32(child+8))fail(Code.Malformed,Region.Schema,p);return out;}
   array():ArrayView {return this.arrayInto(new ArrayView());}
 }
