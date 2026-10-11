@@ -1,0 +1,11 @@
+message Player @max_bytes(65536) {
+  1 id: u64
+  2 position: Vec3
+  3 health: u16
+  4 team: u8
+  5 active: bool
+  6 admin: bool
+  7 name: string @max_bytes(255)
+  8 scores: u16[] @max_count(255)
+}
+struct Vec3 { 1 x: f32; 2 y: f32; 3 z: f32; }
