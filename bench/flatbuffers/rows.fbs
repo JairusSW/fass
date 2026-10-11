@@ -1,0 +1,4 @@
+namespace Bench;
+table Row { id:uint; x:uint; y:uint; z:uint; name:string; }
+table Rows { rows:[Row]; }
+root_type Rows;

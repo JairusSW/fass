@@ -8,5 +8,5 @@
     "rootDir": ".",
     "skipLibCheck": true
   },
-  "include": ["flatbuffers/generated/**/*.ts"]
+  "include": ["flatbuffers/generated/**/*.ts", "*-generated.ts"]
 }

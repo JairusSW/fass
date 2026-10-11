@@ -3,6 +3,13 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { Builder, ByteBuffer } from "flatbuffers";
 import { Packet } from "../.bench-build/flatbuffers/generated/bench/packet.js";
 import { Point } from "../.bench-build/flatbuffers/generated/bench/point.js";
+import {
+  RootView as GeneratedPacket,
+  Layout1 as GeneratedPoint,
+  ArrayPlan7 as GeneratedPoints,
+  ArrayPlan9 as GeneratedValues,
+  PointView as GeneratedArrayPoint,
+} from "../.bench-build/packet-generated.js";
 import { compile } from "../dist/compiler/index.js";
 import {
   openSchema,
@@ -81,7 +88,40 @@ for (let i = 0; i < 32; i++) {
 }
 const typedValues = values.map((a) => new U32ArrayView().bind(a)),
   typedPoints = points.map((a) => resolveArrayU32(a, "x"));
+const generatedPackets = data.map((d) => new GeneratedPacket().open(d)),
+  generatedPoints = generatedPackets.map((p) =>
+    p.getPointInto(new GeneratedPoint()),
+  ),
+  generatedArrays = generatedPackets.map((p) =>
+    p.getPointsInto(new GeneratedPoints()),
+  ),
+  generatedValues = generatedPackets.map((p) =>
+    p.getValuesInto(new GeneratedValues()),
+  ),
+  generatedPointScratch = new GeneratedPoint(),
+  generatedArrayPointScratch = new GeneratedArrayPoint();
 const methods = {
+  "nested FASS generated": (n) => {
+    let s = 0;
+    for (let i = 0; i < n; i++)
+      s += generatedPackets[i & 31].getPointInto(generatedPointScratch).getX();
+    return s;
+  },
+  "bound FASS generated": (n) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += generatedPoints[i & 31].getX();
+    return s;
+  },
+  "record-array FASS generated": (n) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += generatedArrays[i & 31].getX(i & 127);
+    return s;
+  },
+  "scalar-array FASS generated": (n) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += generatedValues[i & 31].get(i & 127);
+    return s;
+  },
   "nested FASS compiled bind": (n) => {
     let s = 0;
     for (let i = 0; i < n; i++)

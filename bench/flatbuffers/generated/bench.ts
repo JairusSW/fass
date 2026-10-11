@@ -2,5 +2,5 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { Packet } from './bench/packet.js';
-export { Point } from './bench/point.js';
+export { Row } from './bench/row.js';
+export { Rows } from './bench/rows.js';

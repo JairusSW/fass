@@ -10,3 +10,4 @@ export * from "./runtime/materialize.js";
 export * from "./runtime/path.js";
 export * from "./runtime/mutate.js";
 export * from "./runtime/typed-array.js";
+export * from "./runtime/compiled.js";

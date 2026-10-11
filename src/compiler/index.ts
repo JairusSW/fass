@@ -859,3 +859,4 @@ function comparePath(a: number[], b: number[]): number {
     if (a[i] !== b[i]) return a[i] - b[i];
   return a.length - b.length;
 }
+export { generateTypescript } from "./codegen.js";
