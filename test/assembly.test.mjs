@@ -1,12 +1,299 @@
-import {test,before} from 'node:test';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';import {readFileSync} from 'node:fs';import {compile} from '../dist/compiler/index.js';import {openSchema,open,encode,Code,xxh64} from '../dist/index.js';
+import { test, before } from "node:test";
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { compile } from "../dist/compiler/index.js";
+import { openSchema, open, encode, Code, xxh64 } from "../dist/index.js";
 let wasm;
-before(()=>{execFileSync(process.execPath,['node_modules/assemblyscript/bin/asc.js','test/wasm.ts','--outFile','.test-build/runtime.wasm','--exportRuntime','--runtime','stub','--optimize']);wasm=readFileSync('.test-build/runtime.wasm');});
-async function setup(source,data){const {instance}=await WebAssembly.instantiate(wasm,{env:{abort(){throw Error('AS abort');}}}),w=instance.exports,c=compile(source),s=openSchema(c.schema),bytes=typeof data==='function'?data(s):data??encode(s,{});const put=b=>{const p=w.__new(b.length,0);new Uint8Array(w.memory.buffer,p,b.length).set(b);return p;};const sp=put(c.schema),dp=put(bytes);assert.equal(w.open(sp,c.schema.length,dp,bytes.length),Code.Ok);return {w,s,sp,dp,bytes,put};}
-test('TS Player -> Wasm borrowed access -> TS mutation, with no per-access allocations',async()=>{const {w,s,dp,bytes,put}=await setup(readFileSync('examples/player.fass','utf8'),new Uint8Array(readFileSync('fixtures/player.bin')));assert.equal(w.field(1),0);assert.equal(w.get(),42n);assert.equal(w.field(2),0);assert.equal(w.enter(),0);assert.equal(w.field(2),0);assert.equal(w.getFloat(),2);w.root();w.field(7);assert.equal(w.utf8(),0);assert.equal(new TextDecoder().decode(new Uint8Array(w.memory.buffer,dp+w.offset(),w.count())),'Jairus');w.field(3);assert.equal(w.set(333n),0);const d=open(new Uint8Array(w.memory.buffer,dp,bytes.length),s);assert.equal(d.root().field('health').scalar(),333);const stack=put(new Uint8Array(4096)),intervals=put(new Uint8Array(4096));w.root();assert.equal(w.verify(stack,4096,intervals,4096),0);const p=put(new TextEncoder().encode('health'));const a=w.marker(),b=w.marker();for(let i=0;i<1000;i++){assert.equal(w.named(p,6),0);w.get();}const c=w.marker();assert.equal(c-b,b-a);});
-test('cross-language composed arrays, bit packing and references',async()=>{const {w,put}=await setup('message Root {1 words:string[] 2 matrix:u16[][] 3 flags:bool[] 4 records:Row[] 5 ref:ref<Row>} struct Row {1 x:u32 2 text:string}',s=>encode(s,{words:['one','two'],matrix:[[1,2],[3]],flags:[true,false,true],records:[{x:5,text:'a'},{x:6,text:'b'}],ref:{x:7,text:'c'}}));w.field(1);assert.equal(w.arrayBind(),0);assert.equal(w.arrayAt(1),0);assert.equal(w.utf8(),0);assert.equal(w.count(),3);w.root();w.field(3);w.arrayBind();w.arrayAt(2);assert.equal(w.boolGet(),1);assert.equal(w.boolSet(false),0);w.root();w.field(4);w.arrayBind();w.arrayAt(1);assert.equal(w.enter(),0);w.field(1);assert.equal(w.getU32(),6);w.root();w.field(5);assert.equal(w.enter(),0);w.field(1);assert.equal(w.bindRef(),0);assert.equal(w.refGet(),7);assert.equal(w.refSet(9),0);assert.equal(w.getU32(),9);w.root();const stack=put(new Uint8Array(4096)),intervals=put(new Uint8Array(4096));assert.equal(w.verify(stack,4096,intervals,4096),0);});
-test('cross-language indexed and inline maps, perfect names, hash vectors',async()=>{for(const placement of ['', '@inline()']){const {w,put}=await setup(`message Root {1 items:map<string,u32> @max_count(100) ${placement}}`,s=>encode(s,{items:Array.from({length:40},(_,i)=>[`key${i}`,i])}));w.field(1);assert.equal(w.mapBind(),0);for(let i=0;i<40;i++){const p=put(new TextEncoder().encode(`key${i}`));assert.equal(w.mapFind(p,`key${i}`.length),0);assert.equal(w.field(2),0);assert.equal(w.getU32(),i);}w.root();const stack=put(new Uint8Array(32768)),intervals=put(new Uint8Array(32768));assert.equal(w.verify(stack,32768,intervals,32768),0);}
- const source=`message Many {${Array.from({length:24},(_,i)=>`${i+1} item${i}:u32`).join(' ')}}`,{w,put}=await setup(source);for(let i=0;i<24;i++){const p=put(new TextEncoder().encode(`item${i}`));assert.equal(w.named(p,`item${i}`.length),0);assert.equal(w.set(BigInt(i)),0);}const p=put(new TextEncoder().encode('unknown'));assert.equal(w.named(p,7),Code.NotFound);for(let n=0;n<160;n++){const b=Uint8Array.from({length:n},(_,i)=>(i*31+n)%256),p=put(b);for(const seed of [0n,1n,0xffffffffn])assert.equal(BigInt.asUintN(64,w.hash(p,n,seed)),xxh64(b,seed));}
+before(() => {
+  execFileSync(process.execPath, [
+    "node_modules/assemblyscript/bin/asc.js",
+    "test/wasm.ts",
+    "--outFile",
+    ".test-build/runtime.wasm",
+    "--exportRuntime",
+    "--runtime",
+    "stub",
+    "--optimize",
+  ]);
+  wasm = readFileSync(".test-build/runtime.wasm");
 });
-test('Wasm lazy schema opening ignores unrelated corruption and rejects selected offsets',async()=>{const {w,s,sp,put}=await setup('message Foo {1 A:Bar} struct Bar {1 B:u32} struct Unrelated {1 x:u32}',new Uint8Array([1,0,0,0]));const dv=new DataView(w.memory.buffer);dv.setUint32(sp+s.entry(1,s.count(1)-1),0xffffffff,true);assert.equal(w.field(1),0);assert.equal(w.enter(),0);assert.equal(w.field(1),0);assert.equal(w.getU32(),1);const bar=w.field(1);const projection=s.u32(s.entry(3,s.slot(s.root,0)));const field=s.slot(projection,0);dv.setUint32(sp+s.entry(2,field),0xffffffff,true);assert.equal(w.field(1),Code.Malformed);});
-test('Wasm caller-buffer construction applies cold defaults and TS reads identical bytes',async()=>{const source='message Root {1 id:u64=42 2 position:Position={x:1,y:2} 3 words:string[]=["one","two"] 4 flags:bool[]=[true,false,true] 5 rows:Position[]=[{x:3,y:4}] 6 entries:map<string,u32>=[["a",1],["b",2]]} struct Position {1 x:f32 2 y:f32}',{w,s,put}=await setup(source);const data=put(new Uint8Array(8192)),stack=put(new Uint8Array(8192));const a=w.marker(),b=w.marker();assert.equal(w.build(data,8192,stack,8192),0);const c=w.marker();assert.equal(c-b,b-a);const len=w.builtLength(),expected=encode(s,{});assert.deepEqual(new Uint8Array(w.memory.buffer,data,len),expected);assert.equal(w.open(put(s.bytes),s.bytes.length,data,len),0);const intervals=put(new Uint8Array(8192));assert.equal(w.verify(stack,8192,intervals,8192),0);});
-test('Wasm reserved map mutation and cached inline paths use only caller storage',async()=>{const {w,s,dp,put}=await setup('message Root {1 items:map<string,u32> @max_count(20) 2 child:Child} struct Child {1 x:u32}',s=>{const b=new Uint8Array(4096);b.set(encode(s,{}));return b;});w.field(1);const used=encode(s,{}).length;assert.equal(w.mapReserve(15,used),0);const ids=put(new Uint8Array(8)),stack=put(new Uint8Array(4096)),intervals=put(new Uint8Array(4096));for(let i=0;i<10;i++){const p=put(new TextEncoder().encode(`key${i}`));assert.equal(w.mapPrepare(p,4,ids,8),0);assert.equal(w.field(2),0);assert.equal(w.set(BigInt(i)),0);assert.equal(w.mapPublish(stack,4096,intervals,4096),0);}const k=put(new TextEncoder().encode('key3'));assert.equal(w.mapDelete(k,4),0);assert.equal(w.mapFind(k,4),Code.NotFound);w.root();assert.equal(w.verify(stack,4096,intervals,4096),0);const names=put(new Uint8Array(16)),steps=put(new Uint8Array(16)),child=put(new TextEncoder().encode('child')),x=put(new TextEncoder().encode('x')),v=new DataView(w.memory.buffer);v.setUint32(names,child,true);v.setUint32(names+4,5,true);v.setUint32(names+8,x,true);v.setUint32(names+12,1,true);assert.equal(w.pathResolve(names,2,steps,16),0);assert.equal(w.pathBind(),0);assert.equal(w.refSet(55),0);assert.equal(w.refGet(),55);assert.equal(open(new Uint8Array(w.memory.buffer,dp,4096),s).root().field('child').record().field('x').u32(),55);});
+async function setup(source, data) {
+  const { instance } = await WebAssembly.instantiate(wasm, {
+      env: {
+        abort() {
+          throw Error("AS abort");
+        },
+      },
+    }),
+    w = instance.exports,
+    c = compile(source),
+    s = openSchema(c.schema),
+    bytes = typeof data === "function" ? data(s) : (data ?? encode(s, {}));
+  const put = (b) => {
+    const p = w.__new(b.length, 0);
+    new Uint8Array(w.memory.buffer, p, b.length).set(b);
+    return p;
+  };
+  const sp = put(c.schema),
+    dp = put(bytes);
+  assert.equal(w.open(sp, c.schema.length, dp, bytes.length), Code.Ok);
+  return { w, s, sp, dp, bytes, put };
+}
+test("TS Player -> Wasm borrowed access -> TS mutation, with no per-access allocations", async () => {
+  const { w, s, dp, bytes, put } = await setup(
+    readFileSync("examples/player.fass", "utf8"),
+    new Uint8Array(readFileSync("fixtures/player.bin")),
+  );
+  assert.equal(w.field(1), 0);
+  assert.equal(w.get(), 42n);
+  assert.equal(w.field(2), 0);
+  assert.equal(w.enter(), 0);
+  assert.equal(w.field(2), 0);
+  assert.equal(w.getFloat(), 2);
+  w.root();
+  w.field(7);
+  assert.equal(w.utf8(), 0);
+  assert.equal(
+    new TextDecoder().decode(
+      new Uint8Array(w.memory.buffer, dp + w.offset(), w.count()),
+    ),
+    "Jairus",
+  );
+  w.field(3);
+  assert.equal(w.set(333n), 0);
+  const d = open(new Uint8Array(w.memory.buffer, dp, bytes.length), s);
+  assert.equal(d.root().field("health").scalar(), 333);
+  const stack = put(new Uint8Array(4096)),
+    intervals = put(new Uint8Array(4096));
+  w.root();
+  assert.equal(w.verify(stack, 4096, intervals, 4096), 0);
+  const p = put(new TextEncoder().encode("health"));
+  const a = w.marker(),
+    b = w.marker();
+  for (let i = 0; i < 1000; i++) {
+    assert.equal(w.named(p, 6), 0);
+    w.get();
+  }
+  const c = w.marker();
+  assert.equal(c - b, b - a);
+});
+test("cross-language composed arrays, bit packing and references", async () => {
+  const { w, put } = await setup(
+    "message Root {1 words:string[] 2 matrix:u16[][] 3 flags:bool[] 4 records:Row[] 5 ref:ref<Row>} struct Row {1 x:u32 2 text:string}",
+    (s) =>
+      encode(s, {
+        words: ["one", "two"],
+        matrix: [[1, 2], [3]],
+        flags: [true, false, true],
+        records: [
+          { x: 5, text: "a" },
+          { x: 6, text: "b" },
+        ],
+        ref: { x: 7, text: "c" },
+      }),
+  );
+  w.field(1);
+  assert.equal(w.arrayBind(), 0);
+  assert.equal(w.arrayAt(1), 0);
+  assert.equal(w.utf8(), 0);
+  assert.equal(w.count(), 3);
+  w.root();
+  w.field(3);
+  w.arrayBind();
+  w.arrayAt(2);
+  assert.equal(w.boolGet(), 1);
+  assert.equal(w.boolSet(false), 0);
+  w.root();
+  w.field(4);
+  w.arrayBind();
+  w.arrayAt(1);
+  assert.equal(w.enter(), 0);
+  w.field(1);
+  assert.equal(w.getU32(), 6);
+  w.root();
+  w.field(5);
+  assert.equal(w.enter(), 0);
+  w.field(1);
+  assert.equal(w.bindRef(), 0);
+  assert.equal(w.refGet(), 7);
+  assert.equal(w.refSet(9), 0);
+  assert.equal(w.getU32(), 9);
+  w.root();
+  const stack = put(new Uint8Array(4096)),
+    intervals = put(new Uint8Array(4096));
+  assert.equal(w.verify(stack, 4096, intervals, 4096), 0);
+});
+test("cross-language indexed and inline maps, perfect names, hash vectors", async () => {
+  for (const placement of ["", "@inline()"]) {
+    const { w, put } = await setup(
+      `message Root {1 items:map<string,u32> @max_count(100) ${placement}}`,
+      (s) =>
+        encode(s, {
+          items: Array.from({ length: 40 }, (_, i) => [`key${i}`, i]),
+        }),
+    );
+    w.field(1);
+    assert.equal(w.mapBind(), 0);
+    for (let i = 0; i < 40; i++) {
+      const p = put(new TextEncoder().encode(`key${i}`));
+      assert.equal(w.mapFind(p, `key${i}`.length), 0);
+      assert.equal(w.field(2), 0);
+      assert.equal(w.getU32(), i);
+    }
+    w.root();
+    const stack = put(new Uint8Array(32768)),
+      intervals = put(new Uint8Array(32768));
+    assert.equal(w.verify(stack, 32768, intervals, 32768), 0);
+  }
+  const source = `message Many {${Array.from({ length: 24 }, (_, i) => `${i + 1} item${i}:u32`).join(" ")}}`,
+    { w, put } = await setup(source);
+  for (let i = 0; i < 24; i++) {
+    const p = put(new TextEncoder().encode(`item${i}`));
+    assert.equal(w.named(p, `item${i}`.length), 0);
+    assert.equal(w.set(BigInt(i)), 0);
+  }
+  const p = put(new TextEncoder().encode("unknown"));
+  assert.equal(w.named(p, 7), Code.NotFound);
+  for (let n = 0; n < 160; n++) {
+    const b = Uint8Array.from({ length: n }, (_, i) => (i * 31 + n) % 256),
+      p = put(b);
+    for (const seed of [0n, 1n, 0xffffffffn])
+      assert.equal(BigInt.asUintN(64, w.hash(p, n, seed)), xxh64(b, seed));
+  }
+});
+test("Wasm lazy schema opening ignores unrelated corruption and rejects selected offsets", async () => {
+  const { w, s, sp, put } = await setup(
+    "message Foo {1 A:Bar} struct Bar {1 B:u32} struct Unrelated {1 x:u32}",
+    new Uint8Array([1, 0, 0, 0]),
+  );
+  const dv = new DataView(w.memory.buffer);
+  dv.setUint32(sp + s.entry(1, s.count(1) - 1), 0xffffffff, true);
+  assert.equal(w.field(1), 0);
+  assert.equal(w.enter(), 0);
+  assert.equal(w.field(1), 0);
+  assert.equal(w.getU32(), 1);
+  const bar = w.field(1);
+  const projection = s.u32(s.entry(3, s.slot(s.root, 0)));
+  const field = s.slot(projection, 0);
+  dv.setUint32(sp + s.entry(2, field), 0xffffffff, true);
+  assert.equal(w.field(1), Code.Malformed);
+});
+test("Wasm caller-buffer construction applies cold defaults and TS reads identical bytes", async () => {
+  const source =
+      'message Root {1 id:u64=42 2 position:Position={x:1,y:2} 3 words:string[]=["one","two"] 4 flags:bool[]=[true,false,true] 5 rows:Position[]=[{x:3,y:4}] 6 entries:map<string,u32>=[["a",1],["b",2]]} struct Position {1 x:f32 2 y:f32}',
+    { w, s, put } = await setup(source);
+  const data = put(new Uint8Array(8192)),
+    stack = put(new Uint8Array(8192));
+  const a = w.marker(),
+    b = w.marker();
+  assert.equal(w.build(data, 8192, stack, 8192), 0);
+  const c = w.marker();
+  assert.equal(c - b, b - a);
+  const len = w.builtLength(),
+    expected = encode(s, {});
+  assert.deepEqual(new Uint8Array(w.memory.buffer, data, len), expected);
+  assert.equal(w.open(put(s.bytes), s.bytes.length, data, len), 0);
+  const intervals = put(new Uint8Array(8192));
+  assert.equal(w.verify(stack, 8192, intervals, 8192), 0);
+});
+test("Wasm reserved map mutation and cached inline paths use only caller storage", async () => {
+  const { w, s, dp, put } = await setup(
+    "message Root {1 items:map<string,u32> @max_count(20) 2 child:Child} struct Child {1 x:u32}",
+    (s) => {
+      const b = new Uint8Array(4096);
+      b.set(encode(s, {}));
+      return b;
+    },
+  );
+  w.field(1);
+  const used = encode(s, {}).length;
+  assert.equal(w.mapReserve(15, used), 0);
+  const ids = put(new Uint8Array(8)),
+    stack = put(new Uint8Array(4096)),
+    intervals = put(new Uint8Array(4096));
+  for (let i = 0; i < 10; i++) {
+    const p = put(new TextEncoder().encode(`key${i}`));
+    assert.equal(w.mapPrepare(p, 4, ids, 8), 0);
+    assert.equal(w.field(2), 0);
+    assert.equal(w.set(BigInt(i)), 0);
+    assert.equal(w.mapPublish(stack, 4096, intervals, 4096), 0);
+  }
+  const k = put(new TextEncoder().encode("key3"));
+  assert.equal(w.mapDelete(k, 4), 0);
+  assert.equal(w.mapFind(k, 4), Code.NotFound);
+  w.root();
+  assert.equal(w.verify(stack, 4096, intervals, 4096), 0);
+  const names = put(new Uint8Array(16)),
+    steps = put(new Uint8Array(16)),
+    child = put(new TextEncoder().encode("child")),
+    x = put(new TextEncoder().encode("x")),
+    v = new DataView(w.memory.buffer);
+  v.setUint32(names, child, true);
+  v.setUint32(names + 4, 5, true);
+  v.setUint32(names + 8, x, true);
+  v.setUint32(names + 12, 1, true);
+  assert.equal(w.pathResolve(names, 2, steps, 16), 0);
+  assert.equal(w.pathBind(), 0);
+  assert.equal(w.refSet(55), 0);
+  assert.equal(w.refGet(), 55);
+  assert.equal(
+    open(new Uint8Array(w.memory.buffer, dp, 4096), s)
+      .root()
+      .field("child")
+      .record()
+      .field("x")
+      .u32(),
+    55,
+  );
+});
+test("Wasm builds canonical inline map defaults in typed key order", async () => {
+  const source =
+      'message Root {1 values:map<string,u32> @inline() = [["z",3],["a",1],["b",2]]}',
+    { w, s, put } = await setup(source),
+    destination = put(new Uint8Array(4096)),
+    stack = put(new Uint8Array(4096));
+  assert.equal(w.build(destination, 4096, stack, 4096), 0);
+  assert.deepEqual(
+    new Uint8Array(w.memory.buffer, destination, w.builtLength()),
+    encode(s, {}),
+  );
+});
+test("Wasm compacts retired payloads and map tombstones into the same canonical bytes as TS", async () => {
+  for (const inline of ["", "@inline()"]) {
+    const source = `message Root {1 text:string 2 map:map<string,u32> @max_count(20) ${inline} 3 values:string[]}`;
+    const { w, s, put } = await setup(source, (s) => {
+      const b = new Uint8Array(4096);
+      b.set(
+        encode(s, {
+          text: "hello",
+          map: [
+            ["b", 2],
+            ["a", 1],
+          ],
+          values: ["x", "y"],
+        }),
+      );
+      return b;
+    });
+    const target = put(new Uint8Array(4096)),
+      stack = put(new Uint8Array(8192)),
+      sort = put(new Uint8Array(4096));
+    const a = w.marker(),
+      b = w.marker();
+    assert.equal(w.compact(target, 4096, stack, 8192, sort, 4096), 0);
+    const c = w.marker();
+    assert.equal(c - b, b - a);
+    assert.deepEqual(
+      new Uint8Array(w.memory.buffer, target, w.compactLength()),
+      encode(s, {
+        text: "hello",
+        map: [
+          ["a", 1],
+          ["b", 2],
+        ],
+        values: ["x", "y"],
+      }),
+    );
+  }
+});

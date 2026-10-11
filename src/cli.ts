@@ -1,8 +1,23 @@
 #!/usr/bin/env node
-import {readFileSync,writeFileSync} from 'node:fs';
-import {compile,runtimeIdentity} from './compiler/index.js';
-import {openSchema,open,openEnvelope,envelopeInto,encode,decode,verifySchema,verifyMessage,canonicalizeInto,migrateInto,Schema,TypeView,Code,FassError} from './index.js';
-const help=`fass — packed messages and directly indexed schemas
+import { readFileSync, writeFileSync } from "node:fs";
+import { compile, runtimeIdentity } from "./compiler/index.js";
+import {
+  openSchema,
+  open,
+  openEnvelope,
+  envelopeInto,
+  encode,
+  decode,
+  verifySchema,
+  verifyMessage,
+  canonicalizeInto,
+  migrateInto,
+  Schema,
+  TypeView,
+  Code,
+  FassError,
+} from "./index.js";
+const help = `fass — packed messages and directly indexed schemas
 
 fass compile input.fass -o schema.fsc [--strip] [--report layout.txt]
 fass inspect schema.fsc
@@ -16,21 +31,164 @@ fass generate schema.fsc -o bindings.ts [--target typescript|assemblyscript]
 JSON integers wider than the safe number range use decimal strings. Maps use
 [[key,value],...] pairs. Raw and framed inputs are selected explicitly.
 `;
-const args=process.argv.slice(2),command=args.shift(),pos:string[]=[];const flags=new Map<string,string|boolean>();
-for(let i=0;i<args.length;i++){const a=args[i];if(a.startsWith('-')){if(['--strip','--framed','--help','-h'].includes(a))flags.set(a,true);else{if(!args[i+1]||args[i+1].startsWith('-'))throw Error(`Missing argument for ${a}`);flags.set(a,args[++i]);}}else pos.push(a);}
-const load=(p:string)=>new Uint8Array(readFileSync(p));
-const output=()=>{const p=flags.get('-o');if(typeof p!=='string')throw Error('Expected -o output path');return p;};
-function scratch():Uint32Array {const n=Number(flags.get('--scratch')??65536);if(!Number.isSafeInteger(n)||n<0||n>16000000)throw Error('Invalid --scratch word count');return new Uint32Array(n);}
-function inspect(s:Schema):string {const rows=[`fass schema ${s.bytes.length} bytes; max payload ${s.maxBytes}; contract ${Buffer.from(s.bytes.subarray(16,32)).toString('hex')}`];for(let i=0;i<s.count(1);i++){const l=s.layout(i),first=s.u32(l+4);let type='';try{type=new TypeView(s,s.u32(l+12)).name();}catch{}rows.push(`layout ${i} ${type}: head ${s.u32(l)} (${s.u32(l+24)===1?'independent':'projection'})`);for(let j=0;j<s.u32(l+8);j++){const a=s.access(first+j);let name='';try{name=new TypeView(s,s.u32(l+12)).field(j).name();}catch{}rows.push(`  slot=${j} id=${s.u32(s.entry(9,first+j))} ${name} offset=${s.u32(a)} kind=${s.u8(a+4)} descriptor=${s.u8(a+5)>>4}`);}}return rows.join('\n')+'\n';}
-function json(value:unknown):string{return JSON.stringify(value,(_k,v)=>typeof v==='bigint'?v.toString():v instanceof Map?[...v.entries()]:v,2)+'\n';}
+const args = process.argv.slice(2),
+  command = args.shift(),
+  pos: string[] = [];
+const flags = new Map<string, string | boolean>();
+for (let i = 0; i < args.length; i++) {
+  const a = args[i];
+  if (a.startsWith("-")) {
+    if (["--strip", "--framed", "--help", "-h"].includes(a)) flags.set(a, true);
+    else {
+      if (!args[i + 1] || args[i + 1].startsWith("-"))
+        throw Error(`Missing argument for ${a}`);
+      flags.set(a, args[++i]);
+    }
+  } else pos.push(a);
+}
+const load = (p: string) => new Uint8Array(readFileSync(p));
+const output = () => {
+  const p = flags.get("-o");
+  if (typeof p !== "string") throw Error("Expected -o output path");
+  return p;
+};
+function scratch(): Uint32Array {
+  const n = Number(flags.get("--scratch") ?? 65536);
+  if (!Number.isSafeInteger(n) || n < 0 || n > 16000000)
+    throw Error("Invalid --scratch word count");
+  return new Uint32Array(n);
+}
+function inspect(s: Schema): string {
+  const rows = [
+    `fass schema ${s.bytes.length} bytes; max payload ${s.maxBytes}; contract ${Buffer.from(s.bytes.subarray(16, 32)).toString("hex")}`,
+  ];
+  for (let i = 0; i < s.count(1); i++) {
+    const l = s.layout(i),
+      first = s.u32(l + 4);
+    let type = "";
+    try {
+      type = new TypeView(s, s.u32(l + 12)).name();
+    } catch {}
+    rows.push(
+      `layout ${i} ${type}: head ${s.u32(l)} (${s.u32(l + 24) === 1 ? "independent" : "projection"})`,
+    );
+    for (let j = 0; j < s.u32(l + 8); j++) {
+      const a = s.access(first + j);
+      let name = "";
+      try {
+        name = new TypeView(s, s.u32(l + 12)).field(j).name();
+      } catch {}
+      rows.push(
+        `  slot=${j} id=${s.u32(s.entry(9, first + j))} ${name} offset=${s.u32(a)} kind=${s.u8(a + 4)} descriptor=${s.u8(a + 5) >> 4}`,
+      );
+    }
+  }
+  return rows.join("\n") + "\n";
+}
+function json(value: unknown): string {
+  return (
+    JSON.stringify(
+      value,
+      (_k, v) =>
+        typeof v === "bigint"
+          ? v.toString()
+          : v instanceof Map
+            ? [...v.entries()]
+            : v,
+      2,
+    ) + "\n"
+  );
+}
 try {
- if(!command||command==='help'||flags.has('--help')||flags.has('-h'))process.stdout.write(help);
- else if(command==='compile'){const c=compile(readFileSync(pos[0],'utf8'),{strip:flags.has('--strip')});writeFileSync(output(),c.schema);if(flags.has('--report'))writeFileSync(String(flags.get('--report')),c.report);process.stdout.write(c.report);}
- else if(command==='inspect')process.stdout.write(inspect(openSchema(load(pos[0]))));
- else if(command==='generate'){const s=openSchema(load(pos[0])),target=flags.get('--target')??'typescript';if(target!=='typescript'&&target!=='assemblyscript')throw Error('Unknown target');verifySchema(s);const lines=['// Generated by fass. Binary schema is the layout authority.'];if(target==='typescript')lines.push(`export const schemaBytes = new Uint8Array([${[...s.bytes].join(',')}]);`);else lines.push(`export const schemaBytes: StaticArray<u8> = [${[...s.bytes].join(',')}];`);const typ=target==='typescript'?'number':'u32';lines.push(`export const ROOT_LAYOUT: ${typ} = ${s.root};`);for(let i=0;i<s.count(1);i++){const l=s.layout(i);lines.push(`export const LAYOUT_${i}_HEAD_BYTES: ${typ} = ${s.u32(l)};`);for(let j=0;j<s.u32(l+8);j++){const fi=s.u32(l+4)+j,id=s.u32(s.entry(9,fi));lines.push(`export const LAYOUT_${i}_ID_${id}_SLOT: ${typ} = ${j};`);}}writeFileSync(output(),lines.join('\n')+'\n');}
- else if(command==='encode'){const s=openSchema(load(pos[0]));verifySchema(s);const b=encode(s,JSON.parse(readFileSync(pos[1],'utf8')));if(flags.has('--framed')){const out=new Uint8Array(b.length+24);envelopeInto(open(b,s),out);writeFileSync(output(),out);}else writeFileSync(output(),b);}
- else if(command==='verify'){const s=openSchema(load(pos[0]));verifySchema(s);const identity=runtimeIdentity(s.bytes);if(!identity.every((v,i)=>v===s.bytes[16+i]))throw new FassError(Code.SchemaMismatch,0,16);if(pos[1]){const b=load(pos[1]),d=flags.has('--framed')?openEnvelope(b,s):open(b,s);verifyMessage(d,scratch());}process.stdout.write('Valid\n');}
- else if(command==='decode'||command==='compact'){const s=openSchema(load(pos[0])),b=load(pos[1]),d=flags.has('--framed')?openEnvelope(b,s):open(b,s);verifySchema(s);verifyMessage(d,scratch());if(command==='decode'){const text=json(decode(d));if(flags.has('-o'))writeFileSync(output(),text);else process.stdout.write(text);}else{const out=new Uint8Array(b.length),n=canonicalizeInto(d,out,scratch());writeFileSync(output(),out.subarray(0,n));}}
- else if(command==='migrate'){const s=openSchema(load(pos[0])),target=openSchema(load(pos[1])),d=open(load(pos[2]),s);verifySchema(s);verifySchema(target);verifyMessage(d,scratch());const out=new Uint8Array(target.maxBytes),n=migrateInto(d,target,out);writeFileSync(output(),out.subarray(0,n));}
- else throw Error(`Unknown command ${command}\n${help}`);
-} catch(e) {process.stderr.write(`${e instanceof Error?e.message:String(e)}\n`);process.exitCode=1;}
+  if (!command || command === "help" || flags.has("--help") || flags.has("-h"))
+    process.stdout.write(help);
+  else if (command === "compile") {
+    const c = compile(readFileSync(pos[0], "utf8"), {
+      strip: flags.has("--strip"),
+    });
+    writeFileSync(output(), c.schema);
+    if (flags.has("--report"))
+      writeFileSync(String(flags.get("--report")), c.report);
+    process.stdout.write(c.report);
+  } else if (command === "inspect")
+    process.stdout.write(inspect(openSchema(load(pos[0]))));
+  else if (command === "generate") {
+    const s = openSchema(load(pos[0])),
+      target = flags.get("--target") ?? "typescript";
+    if (target !== "typescript" && target !== "assemblyscript")
+      throw Error("Unknown target");
+    verifySchema(s);
+    const lines = [
+      "// Generated by fass. Binary schema is the layout authority.",
+    ];
+    if (target === "typescript")
+      lines.push(
+        `export const schemaBytes = new Uint8Array([${[...s.bytes].join(",")}]);`,
+      );
+    else
+      lines.push(
+        `export const schemaBytes: StaticArray<u8> = [${[...s.bytes].join(",")}];`,
+      );
+    const typ = target === "typescript" ? "number" : "u32";
+    lines.push(`export const ROOT_LAYOUT: ${typ} = ${s.root};`);
+    for (let i = 0; i < s.count(1); i++) {
+      const l = s.layout(i);
+      lines.push(`export const LAYOUT_${i}_HEAD_BYTES: ${typ} = ${s.u32(l)};`);
+      for (let j = 0; j < s.u32(l + 8); j++) {
+        const fi = s.u32(l + 4) + j,
+          id = s.u32(s.entry(9, fi));
+        lines.push(`export const LAYOUT_${i}_ID_${id}_SLOT: ${typ} = ${j};`);
+      }
+    }
+    writeFileSync(output(), lines.join("\n") + "\n");
+  } else if (command === "encode") {
+    const s = openSchema(load(pos[0]));
+    verifySchema(s);
+    const b = encode(s, JSON.parse(readFileSync(pos[1], "utf8")));
+    if (flags.has("--framed")) {
+      const out = new Uint8Array(b.length + 24);
+      envelopeInto(open(b, s), out);
+      writeFileSync(output(), out);
+    } else writeFileSync(output(), b);
+  } else if (command === "verify") {
+    const s = openSchema(load(pos[0]));
+    verifySchema(s);
+    const identity = runtimeIdentity(s.bytes);
+    if (!identity.every((v, i) => v === s.bytes[16 + i]))
+      throw new FassError(Code.SchemaMismatch, 0, 16);
+    if (pos[1]) {
+      const b = load(pos[1]),
+        d = flags.has("--framed") ? openEnvelope(b, s) : open(b, s);
+      verifyMessage(d, scratch());
+    }
+    process.stdout.write("Valid\n");
+  } else if (command === "decode" || command === "compact") {
+    const s = openSchema(load(pos[0])),
+      b = load(pos[1]),
+      d = flags.has("--framed") ? openEnvelope(b, s) : open(b, s);
+    verifySchema(s);
+    verifyMessage(d, scratch());
+    if (command === "decode") {
+      const text = json(decode(d));
+      if (flags.has("-o")) writeFileSync(output(), text);
+      else process.stdout.write(text);
+    } else {
+      const out = new Uint8Array(b.length),
+        n = canonicalizeInto(d, out, scratch());
+      writeFileSync(output(), out.subarray(0, n));
+    }
+  } else if (command === "migrate") {
+    const s = openSchema(load(pos[0])),
+      target = openSchema(load(pos[1])),
+      d = open(load(pos[2]), s);
+    verifySchema(s);
+    verifySchema(target);
+    verifyMessage(d, scratch());
+    const out = new Uint8Array(target.maxBytes),
+      n = migrateInto(d, target, out);
+    writeFileSync(output(), out.subarray(0, n));
+  } else throw Error(`Unknown command ${command}\n${help}`);
+} catch (e) {
+  process.stderr.write(`${e instanceof Error ? e.message : String(e)}\n`);
+  process.exitCode = 1;
+}

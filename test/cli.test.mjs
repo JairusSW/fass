@@ -1,3 +1,62 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {mkdtempSync,writeFileSync,readFileSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import {execFileSync,spawnSync} from 'node:child_process';
-const cli=(...args)=>execFileSync(process.execPath,['dist/cli.js',...args],{encoding:'utf8'});
-test('CLI compile/encode/verify/decode/compact/generate and framed identity',()=>{const dir=mkdtempSync(join(tmpdir(),'fass-')),schema=join(dir,'schema.fsc'),data=join(dir,'data.bin'),input=join(dir,'input.json');cli('compile','examples/player.fass','-o',schema,'--report',join(dir,'layout.txt'));writeFileSync(input,JSON.stringify({id:'42',position:{x:1,y:2,z:3},health:1000,team:2,active:true,name:'Jairus',scores:[100,200,300]}));cli('encode',schema,input,'-o',data);assert.equal(readFileSync(data).length,42);assert.match(cli('verify',schema,data),/Valid/);assert.equal(JSON.parse(cli('decode',schema,data)).id,'42');cli('compact',schema,data,'-o',join(dir,'compact.bin'));assert.deepEqual(readFileSync(join(dir,'compact.bin')),readFileSync(data));cli('generate',schema,'-o',join(dir,'binding.ts'));assert.match(readFileSync(join(dir,'binding.ts'),'utf8'),/ROOT_LAYOUT/);cli('encode',schema,input,'-o',join(dir,'framed.bin'),'--framed');assert.match(cli('verify',schema,join(dir,'framed.bin'),'--framed'),/Valid/);const b=readFileSync(join(dir,'framed.bin'));b[8]^=1;writeFileSync(join(dir,'framed.bin'),b);assert.notEqual(spawnSync(process.execPath,['dist/cli.js','verify',schema,join(dir,'framed.bin'),'--framed']).status,0);});
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { execFileSync, spawnSync } from "node:child_process";
+const cli = (...args) =>
+  execFileSync(process.execPath, ["dist/cli.js", ...args], {
+    encoding: "utf8",
+  });
+test("CLI compile/encode/verify/decode/compact/generate and framed identity", () => {
+  const dir = mkdtempSync(join(tmpdir(), "fass-")),
+    schema = join(dir, "schema.fsc"),
+    data = join(dir, "data.bin"),
+    input = join(dir, "input.json");
+  cli(
+    "compile",
+    "examples/player.fass",
+    "-o",
+    schema,
+    "--report",
+    join(dir, "layout.txt"),
+  );
+  writeFileSync(
+    input,
+    JSON.stringify({
+      id: "42",
+      position: { x: 1, y: 2, z: 3 },
+      health: 1000,
+      team: 2,
+      active: true,
+      name: "Jairus",
+      scores: [100, 200, 300],
+    }),
+  );
+  cli("encode", schema, input, "-o", data);
+  assert.equal(readFileSync(data).length, 42);
+  assert.match(cli("verify", schema, data), /Valid/);
+  assert.equal(JSON.parse(cli("decode", schema, data)).id, "42");
+  cli("compact", schema, data, "-o", join(dir, "compact.bin"));
+  assert.deepEqual(readFileSync(join(dir, "compact.bin")), readFileSync(data));
+  cli("generate", schema, "-o", join(dir, "binding.ts"));
+  assert.match(readFileSync(join(dir, "binding.ts"), "utf8"), /ROOT_LAYOUT/);
+  cli("encode", schema, input, "-o", join(dir, "framed.bin"), "--framed");
+  assert.match(
+    cli("verify", schema, join(dir, "framed.bin"), "--framed"),
+    /Valid/,
+  );
+  const b = readFileSync(join(dir, "framed.bin"));
+  b[8] ^= 1;
+  writeFileSync(join(dir, "framed.bin"), b);
+  assert.notEqual(
+    spawnSync(process.execPath, [
+      "dist/cli.js",
+      "verify",
+      schema,
+      join(dir, "framed.bin"),
+      "--framed",
+    ]).status,
+    0,
+  );
+});

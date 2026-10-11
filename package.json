@@ -1,11 +1,41 @@
 {
-  "name":"fass", "version":"0.1.0", "type":"module",
-  "description":"Packed messages and directly navigable binary schemas for TypeScript and AssemblyScript",
-  "license":"MIT", "author":"Jairus Tanaka",
-  "main":"./dist/index.js", "types":"./dist/index.d.ts",
-  "exports":{".":"./dist/index.js","./compiler":"./dist/compiler/index.js","./assembly":"./assembly/index.ts"},
-  "bin":{"fass":"./dist/cli.js"},
-  "files":["dist","assembly/index.ts","README.md","spec/format.md"],
-  "scripts":{"build":"tsc","check":"tsc --noEmit","test":"npm run build && node --test test/*.test.mjs","bench":"npm run build && node test/bench.mjs"},
-  "devDependencies":{"@types/node":"^22.13.10","assemblyscript":"^0.27.35","typescript":"^5.8.2"}
+  "name": "fass",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Packed messages and directly navigable binary schemas for TypeScript and AssemblyScript",
+  "license": "MIT",
+  "author": "Jairus Tanaka",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./compiler": "./dist/compiler/index.js",
+    "./assembly": "./assembly/index.ts"
+  },
+  "bin": {
+    "fass": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "assembly/index.ts",
+    "README.md",
+    "spec",
+    "examples"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "bench": "npm run build && node test/bench.mjs",
+    "prepack": "npm run build",
+    "format": "prettier --write 'src/**/*.ts' 'test/*.ts' 'test/*.mjs' package.json tsconfig.json README.md spec/status.md && prettier --plugin assemblyscript-prettier --write assembly/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "assemblyscript": "^0.27.35",
+    "assemblyscript-prettier": "^3.0.4",
+    "prettier": "^3.9.10",
+    "typescript": "^5.8.2"
+  },
+  "ascMain": "assembly/index.ts"
 }

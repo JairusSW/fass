@@ -1,32 +1,273 @@
-import {Code,Region,Kind,NO_INDEX as N,RECORD_BYTES,extent,fail,view} from '../format.js';
-import {width,bits} from '../format.js';
-import {xxh64} from '../hash.js';
+import {
+  Code,
+  Region,
+  Kind,
+  NO_INDEX as N,
+  RECORD_BYTES,
+  extent,
+  fail,
+  view,
+} from "../format.js";
+import { width, bits } from "../format.js";
+import { xxh64 } from "../hash.js";
 /** A reusable caller-owned view. Opening does no table traversal or hashing. */
 export class Schema {
-  bytes:Uint8Array=new Uint8Array();dv:DataView=new DataView(new ArrayBuffer(0));root=0;directory=0;maxBytes=0;
-  open(bytes:Uint8Array):this {
-    extent(bytes.length,0,64,Region.Schema);this.bytes=bytes;this.dv=view(bytes);const v=this.dv;
-    if(v.getUint32(0,true)!==0x32435346||v.getUint16(4,true)!==3||v.getUint16(6,true)!==1||v.getUint32(8,true)!==bytes.length||v.getUint32(12,true)!==0||v.getUint32(40,true)!==16)fail(Code.Malformed,Region.Schema);
-    this.directory=v.getUint32(36,true);extent(bytes.length,this.directory,256,Region.Schema);this.root=v.getUint32(32,true);this.maxBytes=v.getUint32(44,true);if(!this.maxBytes)fail(Code.Malformed,Region.Schema,44);return this;
+  bytes: Uint8Array = new Uint8Array();
+  dv: DataView = new DataView(new ArrayBuffer(0));
+  root = 0;
+  directory = 0;
+  maxBytes = 0;
+  open(bytes: Uint8Array): this {
+    extent(bytes.length, 0, 64, Region.Schema);
+    this.bytes = bytes;
+    this.dv = view(bytes);
+    const v = this.dv;
+    if (
+      v.getUint32(0, true) !== 0x32435346 ||
+      v.getUint16(4, true) !== 3 ||
+      v.getUint16(6, true) !== 1 ||
+      v.getUint32(8, true) !== bytes.length ||
+      v.getUint32(12, true) !== 0 ||
+      v.getUint32(40, true) !== 16
+    )
+      fail(Code.Malformed, Region.Schema);
+    this.directory = v.getUint32(36, true);
+    extent(bytes.length, this.directory, 256, Region.Schema);
+    this.root = v.getUint32(32, true);
+    this.maxBytes = v.getUint32(44, true);
+    if (!this.maxBytes) fail(Code.Malformed, Region.Schema, 44);
+    return this;
   }
-  u32(at:number):number {extent(this.bytes.length,at,4,Region.Schema);return this.dv.getUint32(at,true);}
-  u8(at:number):number {extent(this.bytes.length,at,1,Region.Schema);return this.bytes[at];}
-  table(kind:number):number {if(kind<1||kind>16)fail(Code.Malformed,Region.Schema);const at=this.directory+16*(kind-1);if(this.dv.getUint16(at,true)!==kind||this.dv.getUint16(at+2,true))fail(Code.Malformed,Region.Schema,at);const base=this.u32(at+4),len=this.u32(at+8),count=this.u32(at+12);if(len!==count*RECORD_BYTES[kind]||(!len&&(base||count))||len&&base%8)fail(Code.Malformed,Region.Schema,at);extent(this.bytes.length,base,len,Region.Schema);return base;}
-  count(kind:number):number {this.table(kind);return this.u32(this.directory+16*(kind-1)+12);}
-  entry(kind:number,index:number):number {const base=this.table(kind);if(!Number.isInteger(index)||index<0||index>=this.u32(this.directory+16*(kind-1)+12))fail(Code.Malformed,Region.Schema,base,index);return base+index*RECORD_BYTES[kind];}
-  layout(index:number):number {const at=this.entry(1,index),flags=this.u32(at+24);if((flags!==1&&flags!==2)||this.u32(at+28)||this.u32(at)>this.maxBytes)fail(Code.Malformed,Region.Schema,at);const first=this.u32(at+4),count=this.u32(at+8);if(first>this.count(2)||count>this.count(2)-first||this.count(3)!==this.count(2)||this.count(9)!==this.count(2))fail(Code.Malformed,Region.Schema,at);if(flags===1&&(this.u32(at+16)!==index||this.u32(at+20)!==N))fail(Code.Malformed,Region.Schema,at);return at;}
-  slot(layout:number,slot:number):number {const l=this.layout(layout);if(!Number.isInteger(slot)||slot<0||slot>=this.u32(l+8))fail(Code.NotFound,Region.Schema,l,slot);return this.u32(l+4)+slot;}
-  byID(layout:number,id:number):number {const l=this.layout(layout),first=this.u32(l+4);let lo=0,hi=this.u32(l+8);while(lo<hi){const m=Math.floor((lo+hi)/2),v=this.u32(this.entry(9,first+m));if(v<id)lo=m+1;else hi=m;}if(lo>=this.u32(l+8)||this.u32(this.entry(9,first+lo))!==id)fail(Code.NotFound,Region.Schema,l,id);return first+lo;}
-  nameEquals(ref:number,name:Uint8Array):boolean {extent(this.bytes.length,ref,8,Region.Schema);const start=this.u32(ref),length=this.u32(ref+4);extent(this.bytes.length,start,length,Region.Schema);if(length!==name.length)return false;for(let i=0;i<length;i++)if(this.bytes[start+i]!==name[i])return false;return true;}
-  byName(layout:number,name:Uint8Array):number {
-    const l=this.layout(layout),logical=this.u32(l+12),base=this.u32(48),count=this.u32(52);if(!base||logical>=count)fail(Code.NotFound,Region.Schema,l);const at=base+logical*32;extent(this.bytes.length,at,32,Region.Schema);const mode=this.u32(at),n=this.u32(at+4),refs=this.u32(at+8);if(mode===0)fail(Code.NotFound,Region.Schema,at);if(n!==this.u32(l+8))fail(Code.Malformed,Region.Schema,at);extent(this.bytes.length,refs,n*8,Region.Schema);let slot=-1;
-    if(mode===1){if(n>4)fail(Code.Malformed,Region.Schema,at);for(let i=0;i<n;i++)if(this.nameEquals(refs+i*8,name)){slot=i;break;}}
-    else if(mode===2){const bc=this.u32(at+12),buckets=this.u32(at+16),sc=this.u32(at+20),slots=this.u32(at+24),seed=this.u32(at+28);if(!bc||!sc||(bc&(bc-1))||(sc&(sc-1)))fail(Code.Malformed,Region.Schema,at);extent(this.bytes.length,buckets,bc*4,Region.Schema);extent(this.bytes.length,slots,sc*4,Region.Schema);const b=Number(xxh64(name,BigInt(seed))&BigInt(bc-1)),g=this.dv.getInt32(buckets+b*4,true);if(g!==0){const pos=g<0?-g-1:Number(xxh64(name,BigInt(seed)+BigInt(g))&BigInt(sc-1));if(pos>=sc)fail(Code.Malformed,Region.Schema,at);const plus=this.u32(slots+pos*4);if(plus){slot=plus-1;if(slot>=n)fail(Code.Malformed,Region.Schema,at);if(!this.nameEquals(refs+slot*8,name))slot=-1;}}}
-    else fail(Code.Malformed,Region.Schema,at);if(slot<0)fail(Code.NotFound,Region.Schema,at);return this.u32(l+4)+slot;
+  u32(at: number): number {
+    extent(this.bytes.length, at, 4, Region.Schema);
+    return this.dv.getUint32(at, true);
   }
-  access(field:number):number {const at=this.entry(2,field),kind=this.u8(at+4),flags=this.u8(at+5),p0=this.u8(at+6),p1=this.u8(at+7),d=flags>>4;if(kind<1||kind>17||flags&8)fail(Code.Malformed,Region.Schema,at);if(kind<=10&&(d||p0||p1)||kind===Kind.Bool&&(d||p0>7||p1)||kind===Kind.Record&&(this.u32(at)||d||p0||p1)||kind===Kind.FixedArray&&(d||p0||p1))fail(Code.Malformed,Region.Schema,at);if([12,13,16,17].includes(kind)&&(d>8||p0>32||p1>32||p0+p1>d*8))fail(Code.Malformed,Region.Schema,at);const link=this.entry(3,field),presence=this.u32(link+4);if(!!(flags&1)!==(presence!==N))fail(Code.Malformed,Region.Schema,link);if(presence!==N){const p=this.entry(6,presence),mask=this.u8(p+4);if(!mask||(mask&(mask-1))||this.u8(p+5)||this.u8(p+6)||this.u8(p+7))fail(Code.Malformed,Region.Schema,p);}return at;}
-  plan(index:number):number {const at=this.entry(4,index),k=this.u8(at);if(k<1||k>17||this.u32(at+24)||this.u32(at+4)&~3||this.u8(at+1)>8||this.u8(at+2)>32||this.u8(at+3)>32||this.u8(at+2)+this.u8(at+3)>8*this.u8(at+1))fail(Code.Malformed,Region.Schema,at);if(k<=11&&(this.u8(at+1)!==width(k)||this.u8(at+2)||this.u8(at+3)||this.u32(at+4)||this.u32(at+8)!==width(k)||this.u32(at+12)||this.u32(at+16)||this.u32(at+20)!==N))fail(Code.Malformed,Region.Schema,at);if(k===Kind.Utf8||k===Kind.Array||k===Kind.Map){const limit=this.u32(at+16),d=this.u8(at+1),o=this.u8(at+2),l=this.u8(at+3);if(this.u32(at+8)!==d||l!==bits(limit)||o!==(limit?bits(this.maxBytes-1):0)||(!limit&&d)||k!==Kind.Array&&this.u32(at+4))fail(Code.Malformed,Region.Schema,at);}
-    if(k===Kind.Array||k===Kind.FixedArray){const flags=this.u32(at+4);if(flags>1||flags&&this.u32(at+12))fail(Code.Malformed,Region.Schema,at);}
-    return at;}
+  u8(at: number): number {
+    extent(this.bytes.length, at, 1, Region.Schema);
+    return this.bytes[at];
+  }
+  table(kind: number): number {
+    if (kind < 1 || kind > 16) fail(Code.Malformed, Region.Schema);
+    const at = this.directory + 16 * (kind - 1);
+    if (this.dv.getUint16(at, true) !== kind || this.dv.getUint16(at + 2, true))
+      fail(Code.Malformed, Region.Schema, at);
+    const base = this.u32(at + 4),
+      len = this.u32(at + 8),
+      count = this.u32(at + 12);
+    if (
+      len !== count * RECORD_BYTES[kind] ||
+      (!len && (base || count)) ||
+      (len && base % 8)
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    extent(this.bytes.length, base, len, Region.Schema);
+    return base;
+  }
+  count(kind: number): number {
+    this.table(kind);
+    return this.u32(this.directory + 16 * (kind - 1) + 12);
+  }
+  entry(kind: number, index: number): number {
+    const base = this.table(kind);
+    if (
+      !Number.isInteger(index) ||
+      index < 0 ||
+      index >= this.u32(this.directory + 16 * (kind - 1) + 12)
+    )
+      fail(Code.Malformed, Region.Schema, base, index);
+    return base + index * RECORD_BYTES[kind];
+  }
+  layout(index: number): number {
+    const at = this.entry(1, index),
+      flags = this.u32(at + 24);
+    if (
+      (flags !== 1 && flags !== 2) ||
+      this.u32(at + 28) ||
+      this.u32(at) > this.maxBytes
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    const first = this.u32(at + 4),
+      count = this.u32(at + 8);
+    if (
+      first > this.count(2) ||
+      count > this.count(2) - first ||
+      this.count(3) !== this.count(2) ||
+      this.count(9) !== this.count(2)
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    if (flags === 1 && (this.u32(at + 16) !== index || this.u32(at + 20) !== N))
+      fail(Code.Malformed, Region.Schema, at);
+    return at;
+  }
+  slot(layout: number, slot: number): number {
+    const l = this.layout(layout);
+    if (!Number.isInteger(slot) || slot < 0 || slot >= this.u32(l + 8))
+      fail(Code.NotFound, Region.Schema, l, slot);
+    return this.u32(l + 4) + slot;
+  }
+  byID(layout: number, id: number): number {
+    const l = this.layout(layout),
+      first = this.u32(l + 4);
+    let lo = 0,
+      hi = this.u32(l + 8);
+    while (lo < hi) {
+      const m = Math.floor((lo + hi) / 2),
+        v = this.u32(this.entry(9, first + m));
+      if (v < id) lo = m + 1;
+      else hi = m;
+    }
+    if (lo >= this.u32(l + 8) || this.u32(this.entry(9, first + lo)) !== id)
+      fail(Code.NotFound, Region.Schema, l, id);
+    return first + lo;
+  }
+  nameEquals(ref: number, name: Uint8Array): boolean {
+    extent(this.bytes.length, ref, 8, Region.Schema);
+    const start = this.u32(ref),
+      length = this.u32(ref + 4);
+    extent(this.bytes.length, start, length, Region.Schema);
+    if (length !== name.length) return false;
+    for (let i = 0; i < length; i++)
+      if (this.bytes[start + i] !== name[i]) return false;
+    return true;
+  }
+  byName(layout: number, name: Uint8Array): number {
+    const l = this.layout(layout),
+      logical = this.u32(l + 12),
+      base = this.u32(48),
+      count = this.u32(52);
+    if (!base || logical >= count) fail(Code.NotFound, Region.Schema, l);
+    const at = base + logical * 32;
+    extent(this.bytes.length, at, 32, Region.Schema);
+    const mode = this.u32(at),
+      n = this.u32(at + 4),
+      refs = this.u32(at + 8);
+    if (mode === 0) fail(Code.NotFound, Region.Schema, at);
+    if (n !== this.u32(l + 8)) fail(Code.Malformed, Region.Schema, at);
+    extent(this.bytes.length, refs, n * 8, Region.Schema);
+    let slot = -1;
+    if (mode === 1) {
+      if (n > 4) fail(Code.Malformed, Region.Schema, at);
+      for (let i = 0; i < n; i++)
+        if (this.nameEquals(refs + i * 8, name)) {
+          slot = i;
+          break;
+        }
+    } else if (mode === 2) {
+      const bc = this.u32(at + 12),
+        buckets = this.u32(at + 16),
+        sc = this.u32(at + 20),
+        slots = this.u32(at + 24),
+        seed = this.u32(at + 28);
+      if (!bc || !sc || bc & (bc - 1) || sc & (sc - 1))
+        fail(Code.Malformed, Region.Schema, at);
+      extent(this.bytes.length, buckets, bc * 4, Region.Schema);
+      extent(this.bytes.length, slots, sc * 4, Region.Schema);
+      const b = Number(xxh64(name, BigInt(seed)) & BigInt(bc - 1)),
+        g = this.dv.getInt32(buckets + b * 4, true);
+      if (g !== 0) {
+        const pos =
+          g < 0
+            ? -g - 1
+            : Number(xxh64(name, BigInt(seed) + BigInt(g)) & BigInt(sc - 1));
+        if (pos >= sc) fail(Code.Malformed, Region.Schema, at);
+        const plus = this.u32(slots + pos * 4);
+        if (plus) {
+          slot = plus - 1;
+          if (slot >= n) fail(Code.Malformed, Region.Schema, at);
+          if (!this.nameEquals(refs + slot * 8, name)) slot = -1;
+        }
+      }
+    } else fail(Code.Malformed, Region.Schema, at);
+    if (slot < 0) fail(Code.NotFound, Region.Schema, at);
+    return this.u32(l + 4) + slot;
+  }
+  access(field: number): number {
+    const at = this.entry(2, field),
+      kind = this.u8(at + 4),
+      flags = this.u8(at + 5),
+      p0 = this.u8(at + 6),
+      p1 = this.u8(at + 7),
+      d = flags >> 4;
+    if (kind < 1 || kind > 17 || flags & 8)
+      fail(Code.Malformed, Region.Schema, at);
+    if (
+      (kind <= 10 && (d || p0 || p1)) ||
+      (kind === Kind.Bool && (d || p0 > 7 || p1)) ||
+      (kind === Kind.Record && (this.u32(at) || d || p0 || p1)) ||
+      (kind === Kind.FixedArray && (d || p0 || p1))
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    if (
+      [12, 13, 16, 17].includes(kind) &&
+      (d > 8 || p0 > 32 || p1 > 32 || p0 + p1 > d * 8)
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    const link = this.entry(3, field),
+      presence = this.u32(link + 4);
+    if (!!(flags & 1) !== (presence !== N))
+      fail(Code.Malformed, Region.Schema, link);
+    if (presence !== N) {
+      const p = this.entry(6, presence),
+        mask = this.u8(p + 4);
+      if (
+        !mask ||
+        mask & (mask - 1) ||
+        this.u8(p + 5) ||
+        this.u8(p + 6) ||
+        this.u8(p + 7)
+      )
+        fail(Code.Malformed, Region.Schema, p);
+    }
+    return at;
+  }
+  plan(index: number): number {
+    const at = this.entry(4, index),
+      k = this.u8(at);
+    if (
+      k < 1 ||
+      k > 17 ||
+      this.u32(at + 24) ||
+      this.u32(at + 4) & ~3 ||
+      this.u8(at + 1) > 8 ||
+      this.u8(at + 2) > 32 ||
+      this.u8(at + 3) > 32 ||
+      this.u8(at + 2) + this.u8(at + 3) > 8 * this.u8(at + 1)
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    if (
+      k <= 11 &&
+      (this.u8(at + 1) !== width(k) ||
+        this.u8(at + 2) ||
+        this.u8(at + 3) ||
+        this.u32(at + 4) ||
+        this.u32(at + 8) !== width(k) ||
+        this.u32(at + 12) ||
+        this.u32(at + 16) ||
+        this.u32(at + 20) !== N)
+    )
+      fail(Code.Malformed, Region.Schema, at);
+    if (k === Kind.Utf8 || k === Kind.Array || k === Kind.Map) {
+      const limit = this.u32(at + 16),
+        d = this.u8(at + 1),
+        o = this.u8(at + 2),
+        l = this.u8(at + 3);
+      if (
+        this.u32(at + 8) !== d ||
+        l !== bits(limit) ||
+        o !== (limit ? bits(this.maxBytes - 1) : 0) ||
+        (!limit && d) ||
+        (k !== Kind.Array && this.u32(at + 4))
+      )
+        fail(Code.Malformed, Region.Schema, at);
+    }
+    if (k === Kind.Array || k === Kind.FixedArray) {
+      const flags = this.u32(at + 4);
+      if (flags > 1 || (flags && this.u32(at + 12)))
+        fail(Code.Malformed, Region.Schema, at);
+    }
+    return at;
+  }
 }
-export function openSchema(bytes:Uint8Array):Schema {return new Schema().open(bytes);}
+export function openSchema(bytes: Uint8Array): Schema {
+  return new Schema().open(bytes);
+}

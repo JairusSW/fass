@@ -1,14 +1,330 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-import {compile,runtimeIdentity} from '../dist/compiler/index.js';
-import {openSchema,open,encode,encodeInto,measure,decode,Arena,MapView,verifySchema,verifyMessage,canonicalizeInto,Code,declaration} from '../dist/index.js';
-const schema=s=>openSchema(compile(s).schema);
-test('construction reproduces Player bytes',()=>{const s=schema(readFileSync('examples/player.fass','utf8'));verifySchema(s);const v={id:42n,position:{x:1,y:2,z:3},health:1000,team:2,active:true,admin:false,name:'Jairus',scores:[100,200,300]};assert.deepEqual(encode(s,v),new Uint8Array(readFileSync('fixtures/player.bin')));const b=new Uint8Array(41).fill(99);assert.throws(()=>encodeInto(s,v,b),e=>e.code===Code.NeedCapacity);assert.equal(b[0],99);});
-test('field-specific defaults and optional ancestor publication',()=>{const s=schema('message Foo {1 A?:Bar={B:1} 2 C:Bar={B:2} 3 missing?:u8} struct Bar {1 B:u32}');verifySchema(s);const b=encode(s,{}),d=open(b,s);assert.equal(d.root().field('A').record().field('B').u32(),1);assert.equal(d.root().field('C').record().field('B').u32(),2);assert.equal(d.root().field('missing').isPresent(),false);assert.equal(declaration(d.root().field('A')).default().child(0).scalar(),1);assert.throws(()=>d.root().field('missing').scalar(),e=>e.code===Code.Absent);verifyMessage(d,new Uint32Array(20));});
-test('composed collections, packed bools, independent record heads and references',()=>{const s=schema('message Root {1 words:string[] 2 matrix:u16[][] 3 rows:Row[] 4 flags:bool[] 5 fixed:bool[10] 6 child:ref<Row>} struct Row {1 number:u32 2 text:string}');verifySchema(s);const v={words:['','one','two'],matrix:[[1,2],[],[3]],rows:[{number:1,text:'a'},{number:2,text:'b'}],flags:[true,false,true],fixed:Array.from({length:10},(_,i)=>i%2===0),child:{number:9,text:'hi'}};const d=open(encode(s,v),s);assert.deepEqual(decode(d),v);verifyMessage(d,new Uint32Array(100));});
-test('maps indexed/inline, canonical order, duplicate rejection, read-only keys',()=>{for(const inline of ['', '@inline()']){const s=schema(`message Root {1 items:map<string,Row> @max_count(64) ${inline}} struct Row {1 x:u32 2 label:string}`);verifySchema(s);const data={items:new Map([['z',{x:3,label:'c'}],['a',{x:1,label:'a'}],['b',{x:2,label:'b'}]])},b=encode(s,data),d=open(b,s,true),m=new MapView().bind(d.root().field('items'));assert.equal(m.find('b').field('value').record().field('x').u32(),2);assert.throws(()=>m.find('a').field('key').setScalar(1),e=>e.code===Code.ReadOnly);assert.throws(()=>m.find('missing'),e=>e.code===Code.NotFound);verifyMessage(d,new Uint32Array(100));const dest=new Uint8Array(2048),n=canonicalizeInto(d,dest,new Uint32Array(100));assert.deepEqual(dest.subarray(0,n),b);assert.throws(()=>encode(s,{items:[['a',{}],['a',{}]]}),e=>e.code===Code.Malformed);}});
-test('range checks and enums preserve width',()=>{const s=schema('enum Mode:u8 {Off=0;On=2} message Root {1 n:i16 @range(-100,100) 2 mode:Mode=2}');const b=encode(s,{n:-3});const d=open(b,s,true);assert.equal(d.root().field('n').scalar(),-3);assert.throws(()=>d.root().field('n').setScalar(101),e=>e.code===Code.BoundExceeded);assert.throws(()=>d.root().field('mode').setScalar(1),e=>e.code===Code.BoundExceeded);assert.equal(d.root().field('mode').scalar(),2);verifyMessage(d,new Uint32Array(20));});
-test('arena failed replacement retains live descriptor and cursor',()=>{const s=schema('message Root {1 text:string @max_bytes(20)}'),dest=new Uint8Array(20),n=encodeInto(s,{text:'old'},dest),d=open(dest,s,true),v=d.root().field('text'),a=new Arena(dest,s,n),before=dest.slice();assert.throws(()=>a.replaceBytes(v,new Uint8Array(18)),e=>e.code===Code.NeedCapacity);assert.equal(v.string(),'old');assert.deepEqual(dest,before);a.replaceBytes(v,new TextEncoder().encode('new!'));assert.equal(v.string(),'new!');});
-test('ownership aliases, UTF-8 errors, scratch and logical budgets',()=>{const s=schema('message Root {1 a:string 2 b:string}'),b=encode(s,{a:'a',b:'b'}),d=open(b,s,true),r=d.root(),a=r.field('a'),v=r.field('b');b.set(b.subarray(a.offset,a.offset+3),v.offset);assert.throws(()=>verifyMessage(d,new Uint32Array(20)),e=>e.code===Code.Malformed);assert.throws(()=>verifyMessage(d,new Uint32Array(0)),e=>e.code===Code.NeedScratch);const z=schema('message Root {1 empty:Empty[] @max_count(10000)} struct Empty {}');const zb=encode(z,{empty:Array.from({length:200},()=>({}))});assert.throws(()=>verifyMessage(open(zb,z),new Uint32Array(10),{maxNodes:100}),e=>e.code===Code.WorkLimit);});
-test('schema identity excludes defaults/names but detects core changes',()=>{const a=compile('message Root @id("00000000000000000000000000000001") {1 a:u32=1}').schema,b=compile('message Root @id("00000000000000000000000000000001") {1 renamed:u32=2}').schema,c=compile('message Root @id("00000000000000000000000000000001") {1 a:u16=1}').schema;assert.deepEqual(a.subarray(16,32),runtimeIdentity(a));assert.deepEqual(a.subarray(16,32),b.subarray(16,32));assert.notDeepEqual(a.subarray(16,32),c.subarray(16,32));});
-test('finite empty references omit descriptors; recursive reference values remain bounded',()=>{const s=schema('message Root {1 e:ref<Empty> 2 x:u8} struct Empty {}');verifySchema(s);const b=encode(s,{x:7,e:{}});assert.equal(b.length,1);assert.deepEqual(decode(open(b,s)),{e:{},x:7});const r=schema('message Node {1 n:u32 2 next?:ref<Node>}');const rb=encode(r,{n:1,next:{n:2}});assert.deepEqual(decode(open(rb,r)),{n:1,next:{n:2}});verifyMessage(open(rb,r),new Uint32Array(20));});
-test('prepared map insertion, duplicate rejection, deletion and ID-hole reuse',async()=>{const {reserveMap,MapWriter,RecordView,initializeBytes,initializeScalar,clearOptional}=await import('../dist/index.js');const s=schema('message Root {1 items:map<string,u32> @max_count(30) 2 note?:string 3 number?:u32}'),storage=new Uint8Array(2000),used=encodeInto(s,{},storage),doc=open(storage,s,true),arena=new Arena(storage,s,used),value=doc.root().field('items'),map=reserveMap(arena,value,20),writer=new MapWriter(map,arena,new Uint8Array(3)),entry=new RecordView();for(let i=0;i<15;i++){writer.prepareInto(`k${i}`,entry).field('value').setU32(i);writer.publish(new Uint32Array(100));}assert.equal(map.find('k7').field('value').u32(),7);assert.throws(()=>writer.prepareInto('k7',entry),e=>e.code===Code.Malformed);map.deleteBytes(new TextEncoder().encode('k7'),entry);assert.throws(()=>map.find('k7'),e=>e.code===Code.NotFound);writer.prepareInto('replacement',entry).field('value').setU32(99);writer.publish(new Uint32Array(100));assert.equal(map.find('replacement').field('value').u32(),99);initializeBytes(arena,doc.root().field('note'),new TextEncoder().encode('hi'));initializeScalar(doc.root().field('number'),1);assert.equal(doc.root().field('note').string(),'hi');clearOptional(doc.root().field('number'));assert.equal(doc.root().field('number').isPresent(),false);verifyMessage(doc,new Uint32Array(200));});
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { compile, runtimeIdentity } from "../dist/compiler/index.js";
+import {
+  openSchema,
+  open,
+  encode,
+  encodeInto,
+  measure,
+  decode,
+  Arena,
+  MapView,
+  verifySchema,
+  verifyMessage,
+  canonicalizeInto,
+  Code,
+  declaration,
+} from "../dist/index.js";
+const schema = (s) => openSchema(compile(s).schema);
+test("construction reproduces Player bytes", () => {
+  const s = schema(readFileSync("examples/player.fass", "utf8"));
+  verifySchema(s);
+  const v = {
+    id: 42n,
+    position: { x: 1, y: 2, z: 3 },
+    health: 1000,
+    team: 2,
+    active: true,
+    admin: false,
+    name: "Jairus",
+    scores: [100, 200, 300],
+  };
+  assert.deepEqual(
+    encode(s, v),
+    new Uint8Array(readFileSync("fixtures/player.bin")),
+  );
+  const b = new Uint8Array(41).fill(99);
+  assert.throws(
+    () => encodeInto(s, v, b),
+    (e) => e.code === Code.NeedCapacity,
+  );
+  assert.equal(b[0], 99);
+});
+test("field-specific defaults and optional ancestor publication", () => {
+  const s = schema(
+    "message Foo {1 A?:Bar={B:1} 2 C:Bar={B:2} 3 missing?:u8} struct Bar {1 B:u32}",
+  );
+  verifySchema(s);
+  const b = encode(s, {}),
+    d = open(b, s);
+  assert.equal(d.root().field("A").record().field("B").u32(), 1);
+  assert.equal(d.root().field("C").record().field("B").u32(), 2);
+  assert.equal(d.root().field("missing").isPresent(), false);
+  assert.equal(declaration(d.root().field("A")).default().child(0).scalar(), 1);
+  assert.throws(
+    () => d.root().field("missing").scalar(),
+    (e) => e.code === Code.Absent,
+  );
+  verifyMessage(d, new Uint32Array(20));
+});
+test("composed collections, packed bools, independent record heads and references", () => {
+  const s = schema(
+    "message Root {1 words:string[] 2 matrix:u16[][] 3 rows:Row[] 4 flags:bool[] 5 fixed:bool[10] 6 child:ref<Row>} struct Row {1 number:u32 2 text:string}",
+  );
+  verifySchema(s);
+  const v = {
+    words: ["", "one", "two"],
+    matrix: [[1, 2], [], [3]],
+    rows: [
+      { number: 1, text: "a" },
+      { number: 2, text: "b" },
+    ],
+    flags: [true, false, true],
+    fixed: Array.from({ length: 10 }, (_, i) => i % 2 === 0),
+    child: { number: 9, text: "hi" },
+  };
+  const d = open(encode(s, v), s);
+  assert.deepEqual(decode(d), v);
+  verifyMessage(d, new Uint32Array(100));
+});
+test("maps indexed/inline, canonical order, duplicate rejection, read-only keys", () => {
+  for (const inline of ["", "@inline()"]) {
+    const s = schema(
+      `message Root {1 items:map<string,Row> @max_count(64) ${inline}} struct Row {1 x:u32 2 label:string}`,
+    );
+    verifySchema(s);
+    const data = {
+        items: new Map([
+          ["z", { x: 3, label: "c" }],
+          ["a", { x: 1, label: "a" }],
+          ["b", { x: 2, label: "b" }],
+        ]),
+      },
+      b = encode(s, data),
+      d = open(b, s, true),
+      m = new MapView().bind(d.root().field("items"));
+    assert.equal(m.find("b").field("value").record().field("x").u32(), 2);
+    assert.throws(
+      () => m.find("a").field("key").setScalar(1),
+      (e) => e.code === Code.ReadOnly,
+    );
+    assert.throws(
+      () => m.find("missing"),
+      (e) => e.code === Code.NotFound,
+    );
+    verifyMessage(d, new Uint32Array(100));
+    const dest = new Uint8Array(2048),
+      n = canonicalizeInto(d, dest, new Uint32Array(100));
+    assert.deepEqual(dest.subarray(0, n), b);
+    assert.throws(
+      () =>
+        encode(s, {
+          items: [
+            ["a", {}],
+            ["a", {}],
+          ],
+        }),
+      (e) => e.code === Code.Malformed,
+    );
+  }
+});
+test("range checks and enums preserve width", () => {
+  const s = schema(
+    "enum Mode:u8 {Off=0;On=2} message Root {1 n:i16 @range(-100,100) 2 mode:Mode=2}",
+  );
+  const b = encode(s, { n: -3 });
+  const d = open(b, s, true);
+  assert.equal(d.root().field("n").scalar(), -3);
+  assert.throws(
+    () => d.root().field("n").setScalar(101),
+    (e) => e.code === Code.BoundExceeded,
+  );
+  assert.throws(
+    () => d.root().field("mode").setScalar(1),
+    (e) => e.code === Code.BoundExceeded,
+  );
+  assert.equal(d.root().field("mode").scalar(), 2);
+  verifyMessage(d, new Uint32Array(20));
+});
+test("arena failed replacement retains live descriptor and cursor", () => {
+  const s = schema("message Root {1 text:string @max_bytes(20)}"),
+    dest = new Uint8Array(20),
+    n = encodeInto(s, { text: "old" }, dest),
+    d = open(dest, s, true),
+    v = d.root().field("text"),
+    a = new Arena(dest, s, n),
+    before = dest.slice();
+  assert.throws(
+    () => a.replaceBytes(v, new Uint8Array(18)),
+    (e) => e.code === Code.NeedCapacity,
+  );
+  assert.equal(v.string(), "old");
+  assert.deepEqual(dest, before);
+  a.replaceBytes(v, new TextEncoder().encode("new!"));
+  assert.equal(v.string(), "new!");
+});
+test("ownership aliases, UTF-8 errors, scratch and logical budgets", () => {
+  const s = schema("message Root {1 a:string 2 b:string}"),
+    b = encode(s, { a: "a", b: "b" }),
+    d = open(b, s, true),
+    r = d.root(),
+    a = r.field("a"),
+    v = r.field("b");
+  b.set(b.subarray(a.offset, a.offset + 3), v.offset);
+  assert.throws(
+    () => verifyMessage(d, new Uint32Array(20)),
+    (e) => e.code === Code.Malformed,
+  );
+  assert.throws(
+    () => verifyMessage(d, new Uint32Array(0)),
+    (e) => e.code === Code.NeedScratch,
+  );
+  const z = schema(
+    "message Root {1 empty:Empty[] @max_count(10000)} struct Empty {}",
+  );
+  const zb = encode(z, { empty: Array.from({ length: 200 }, () => ({})) });
+  assert.throws(
+    () => verifyMessage(open(zb, z), new Uint32Array(10), { maxNodes: 100 }),
+    (e) => e.code === Code.WorkLimit,
+  );
+});
+test("schema identity excludes defaults/names but detects core changes", () => {
+  const a = compile(
+      'message Root @id("00000000000000000000000000000001") {1 a:u32=1}',
+    ).schema,
+    b = compile(
+      'message Root @id("00000000000000000000000000000001") {1 renamed:u32=2}',
+    ).schema,
+    c = compile(
+      'message Root @id("00000000000000000000000000000001") {1 a:u16=1}',
+    ).schema;
+  assert.deepEqual(a.subarray(16, 32), runtimeIdentity(a));
+  assert.deepEqual(a.subarray(16, 32), b.subarray(16, 32));
+  assert.notDeepEqual(a.subarray(16, 32), c.subarray(16, 32));
+});
+test("finite empty references omit descriptors; recursive reference values remain bounded", () => {
+  const s = schema("message Root {1 e:ref<Empty> 2 x:u8} struct Empty {}");
+  verifySchema(s);
+  const b = encode(s, { x: 7, e: {} });
+  assert.equal(b.length, 1);
+  assert.deepEqual(decode(open(b, s)), { e: {}, x: 7 });
+  const r = schema("message Node {1 n:u32 2 next?:ref<Node>}");
+  const rb = encode(r, { n: 1, next: { n: 2 } });
+  assert.deepEqual(decode(open(rb, r)), { n: 1, next: { n: 2 } });
+  verifyMessage(open(rb, r), new Uint32Array(20));
+});
+test("prepared map insertion, duplicate rejection, deletion and ID-hole reuse", async () => {
+  const {
+    reserveMap,
+    MapWriter,
+    RecordView,
+    initializeBytes,
+    initializeScalar,
+    clearOptional,
+  } = await import("../dist/index.js");
+  const s = schema(
+      "message Root {1 items:map<string,u32> @max_count(30) 2 note?:string 3 number?:u32}",
+    ),
+    storage = new Uint8Array(2000),
+    used = encodeInto(s, {}, storage),
+    doc = open(storage, s, true),
+    arena = new Arena(storage, s, used),
+    value = doc.root().field("items"),
+    map = reserveMap(arena, value, 20),
+    writer = new MapWriter(map, arena, new Uint8Array(3)),
+    entry = new RecordView();
+  for (let i = 0; i < 15; i++) {
+    writer.prepareInto(`k${i}`, entry).field("value").setU32(i);
+    writer.publish(new Uint32Array(100));
+  }
+  assert.equal(map.find("k7").field("value").u32(), 7);
+  assert.throws(
+    () => writer.prepareInto("k7", entry),
+    (e) => e.code === Code.Malformed,
+  );
+  map.deleteBytes(new TextEncoder().encode("k7"), entry);
+  assert.throws(
+    () => map.find("k7"),
+    (e) => e.code === Code.NotFound,
+  );
+  writer.prepareInto("replacement", entry).field("value").setU32(99);
+  writer.publish(new Uint32Array(100));
+  assert.equal(map.find("replacement").field("value").u32(), 99);
+  initializeBytes(
+    arena,
+    doc.root().field("note"),
+    new TextEncoder().encode("hi"),
+  );
+  initializeScalar(doc.root().field("number"), 1);
+  assert.equal(doc.root().field("note").string(), "hi");
+  clearOptional(doc.root().field("number"));
+  assert.equal(doc.root().field("number").isPresent(), false);
+  verifyMessage(doc, new Uint32Array(200));
+});
+test("recursive arrays and zero-length recursive fixed arrays have finite heads", () => {
+  const s = schema("message Node {1 n:u32 2 children:Node[]}");
+  const input = { n: 1, children: [{ n: 2, children: [] }] };
+  assert.deepEqual(decode(open(encode(s, input), s)), input);
+  verifySchema(s);
+  const z = schema("message Empty {1 self:Empty[0]}");
+  assert.equal(encode(z, {}).length, 0);
+  verifySchema(z);
+});
+test("migration handles stable IDs through arrays, maps, references and float bit patterns", async () => {
+  const { migrateInto, FloatBits } = await import("../dist/index.js");
+  const old = schema(
+      "message Old {1 rows:Row[] 2 entries:map<string,Row> 3 ref:ref<Row> 4 f:f32} struct Row {1 x:u32}",
+    ),
+    next = schema(
+      'message New {1 renamed:NewRow[] 2 entries:map<string,NewRow> 3 child:ref<NewRow> 4 f:f32 5 added:u8=9} struct NewRow {1 value:u32 2 fresh:string="new"}',
+    ),
+    b = encode(old, {
+      rows: [{ x: 1 }],
+      entries: [["a", { x: 2 }]],
+      ref: { x: 3 },
+      f: new FloatBits(9, 0x7fc00042n),
+    }),
+    destination = new Uint8Array(4096),
+    n = migrateInto(open(b, old), next, destination),
+    d = open(destination.subarray(0, n), next);
+  assert.equal(
+    d.root().field("renamed").array().at(0).record().field("value").u32(),
+    1,
+  );
+  assert.equal(
+    new MapView()
+      .bind(d.root().field("entries"))
+      .find("a")
+      .field("value")
+      .record()
+      .field("fresh")
+      .string(),
+    "new",
+  );
+  assert.equal(d.root().field("f").scalarBits(), 0x7fc00042n);
+  assert.equal(d.root().field("added").scalar(), 9);
+  verifyMessage(d, new Uint32Array(100));
+});
+test("recursive maps break expansion at the map descriptor", () => {
+  const s = schema("message Node {1 n:u32 2 children:map<string,Node>}");
+  const b = encode(s, { n: 1, children: [["a", { n: 2, children: [] }]] });
+  verifySchema(s);
+  verifyMessage(open(b, s), new Uint32Array(100));
+  assert.equal(
+    new MapView()
+      .bind(open(b, s).root().field("children"))
+      .find("a")
+      .field("value")
+      .record()
+      .field("n")
+      .u32(),
+    2,
+  );
+});
+test("canonicalization preserves absent fields even when they declare defaults", async () => {
+  const { clearOptional } = await import("../dist/index.js");
+  const s = schema(
+      "message Root {1 x?:u32=7 2 child?:Child={y:8}} struct Child {1 y:u32}",
+    ),
+    b = encode(s, {}),
+    d = open(b, s, true);
+  clearOptional(d.root().field("x"));
+  clearOptional(d.root().field("child"));
+  const out = new Uint8Array(100),
+    n = canonicalizeInto(d, out, new Uint32Array(20));
+  const r = open(out.subarray(0, n), s).root();
+  assert.equal(r.field("x").isPresent(), false);
+  assert.equal(r.field("child").isPresent(), false);
+});
