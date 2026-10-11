@@ -154,7 +154,17 @@ export function borrowedU32(
 /** UTF-8 byte length with the same lone-surrogate replacement behavior as TextEncoder. */
 export function utf8Length(value: string): number {
   let bytes = value.length;
-  for (let i = 0; i < value.length; i++) {
+  let i = 0;
+  for (; i + 4 <= value.length; i += 4)
+    if (
+      (value.charCodeAt(i) |
+        value.charCodeAt(i + 1) |
+        value.charCodeAt(i + 2) |
+        value.charCodeAt(i + 3)) >=
+      128
+    )
+      break;
+  for (; i < value.length; i++) {
     const c = value.charCodeAt(i);
     if (c < 128) continue;
     if (c < 2048) bytes++;
@@ -175,11 +185,22 @@ export function writeUtf8Into(
   destination: Uint8Array,
   at: number,
   limit: number,
+  view?: DataView,
 ): number {
   if (value.length > limit) fail(Code.BoundExceeded, Region.Data, at);
   if (value.length > destination.length - at)
     fail(Code.NeedCapacity, Region.Data, at);
-  for (let i = 0; i < value.length; i++) {
+  let i = 0;
+  if (view)
+    for (; i + 4 <= value.length; i += 4) {
+      const a = value.charCodeAt(i),
+        b = value.charCodeAt(i + 1),
+        c = value.charCodeAt(i + 2),
+        d = value.charCodeAt(i + 3);
+      if ((a | b | c | d) >= 128) break;
+      view.setUint32(at + i, a | (b << 8) | (c << 16) | (d << 24), true);
+    }
+  for (; i < value.length; i++) {
     const c = value.charCodeAt(i);
     if (c >= 128) {
       const size = utf8Length(value);

@@ -191,6 +191,32 @@ test("generated views and encoders agree with the reference implementation", asy
       () => enc.encodeInto({}, new Uint8Array(0)),
       (e) => e.code === Code.NeedCapacity,
     );
+    const invalidScalars = [
+      ["a", [-129, 128]],
+      ["b", [-1, 256]],
+      ["c", [-32769, 32768]],
+      ["d", [-1, 65536]],
+      ["e", [-2147483649, 2147483648]],
+      ["f", [-1, 4294967296]],
+    ];
+    for (const [field, bounds] of invalidScalars)
+      for (const bad of [
+        ...bounds,
+        NaN,
+        Infinity,
+        1.5,
+        "1",
+        1n,
+        Symbol("bad"),
+        null,
+      ]) {
+        const output = new Uint8Array(100).fill(0xa5);
+        assert.throws(
+          () => enc.encodeInto({ [field]: bad }, output),
+          (e) => e.code === Code.BoundExceeded,
+        );
+        assert.ok(output.every((b) => b === 0xa5));
+      }
     const rec = new modules.recursive.Encoder();
     const cycle = {};
     cycle.next = cycle;

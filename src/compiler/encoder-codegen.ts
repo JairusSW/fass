@@ -56,7 +56,18 @@ export function encoderSource(s: Schema): string {
       const min = signed ? -(1n << BigInt(b - 1)) : 0n,
         max = signed ? (1n << BigInt(b - 1)) - 1n : (1n << BigInt(b)) - 1n,
         suffix = w === 8 ? "n" : "";
-      code = `if(${w === 8 ? `typeof ${value}!=='bigint'` : `!Number.isInteger(${value})`}||${value}<${min}${suffix}||${value}>${max}${suffix})fail(Code.BoundExceeded,Region.Data);`;
+      if (w < 8) {
+        const normalized =
+          k === Kind.U32
+            ? `(${value}>>>0)`
+            : k === Kind.I32
+              ? `(${value}|0)`
+              : signed
+                ? `((${value}<<${32 - b})>>${32 - b})`
+                : `(${value}&${(1 << b) - 1})`;
+        code = `if(typeof ${value}!=="number"||${normalized}!==${value})fail(Code.BoundExceeded,Region.Data);`;
+      } else
+        code = `if(typeof ${value}!=="bigint"||${value}<${min}n||${value}>${max}n)fail(Code.BoundExceeded,Region.Data);`;
     }
     if (rule !== N) {
       const r = s.entry(7, rule),
@@ -172,7 +183,7 @@ export function encoderSource(s: Schema): string {
           : store(k, "at", "value");
     } else if (k === 12) {
       m += `if(value===undefined)value="";if(typeof value!=='string')fail(Code.TypeMismatch,Region.Data);const n=utf8Length(value);if(n>${limit})fail(Code.BoundExceeded,Region.Data);this.used+=n;`;
-      w += `if(value===undefined)value="";const base=this.used,n=writeUtf8Into(value,this.doc.bytes,base,${limit});this.used+=n;compiledWriteSpan(this.doc,at,${s.u8(p + 1)},${s.u8(p + 2)},n?base:0,n);`;
+      w += `if(value===undefined)value="";const base=this.used,n=writeUtf8Into(value,this.doc.bytes,base,${limit},this.doc.dv);this.used+=n;compiledWriteSpan(this.doc,at,${s.u8(p + 1)},${s.u8(p + 2)},n?base:0,n);`;
     } else if (k === 15 || k === 16) {
       const head = s.u32(s.layout(child));
       m += `this.work(depth);${k === 16 ? `this.used+=${head};` : ""}this.mL${child}(value,depth+1);`;
