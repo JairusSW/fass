@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { cpus } from "node:os";
 import { performance } from "node:perf_hooks";
 import { readFileSync, writeFileSync } from "node:fs";
 import { Builder, ByteBuffer, Encoding } from "flatbuffers";
@@ -166,8 +168,20 @@ const bytes = {
 };
 console.log("\nBytes:", bytes, "checksum:", checksum);
 const report = {
+  source: {
+    revision: execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim(),
+    trackedChanges: execFileSync(
+      "git",
+      ["status", "--porcelain", "--untracked-files=no"],
+      { encoding: "utf8" },
+    ).trim(),
+  },
   environment: {
     node: process.version,
+    v8: process.versions.v8,
+    cpu: cpus()[0]?.model,
     platform: process.platform,
     arch: process.arch,
     count,

@@ -89,7 +89,7 @@ export function writeWord(address: usize, width: u32, n: u64): void {
     store<u8>(address + i, <u8>(n >> (i * 8)));
 }
 /** Sum four unaligned u32 values without overflowing 32-bit lanes. */
-@inline export function sumU32x4(pointer: usize): u64 {
+@inline export function sumU32x4Unchecked(pointer: usize): u64 {
   if (ASC_FEATURE_SIMD) {
     const value = v128.load(pointer);
     const pair = i64x2.add(
@@ -105,8 +105,8 @@ export function writeWord(address: usize, width: u32, n: u64): void {
     load<u32>(pointer + 12)
   );
 }
-/** Bounded borrowed-vector reduction. No allocation, safe tail, exact u64 accumulation. */
-export function sumU32(pointer: usize, count: u32): u64 {
+/** Reduction of an already established borrowed vector; caller guarantees the extent. No allocation, safe tail, exact u64 accumulation. */
+export function sumU32Unchecked(pointer: usize, count: u32): u64 {
   let i: u32 = 0,
     total: u64 = 0;
   if (ASC_FEATURE_SIMD) {
@@ -122,7 +122,8 @@ export function sumU32(pointer: usize, count: u32): u64 {
       );
     }
     total = <u64>i64x2.extract_lane(acc, 0) + <u64>i64x2.extract_lane(acc, 1);
-  } else for (; count - i >= 4; i += 4) total += sumU32x4(pointer + i * 4);
+  } else
+    for (; count - i >= 4; i += 4) total += sumU32x4Unchecked(pointer + i * 4);
   for (; i < count; i++) total += load<u32>(pointer + i * 4);
   return total;
 }

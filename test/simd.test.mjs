@@ -6,7 +6,7 @@ test("SIMD and SWAR validate exact UTF-8 spans and sum unsigned lanes with safe 
   mkdirSync(".test-build", { recursive: true });
   writeFileSync(
     ".test-build/kernels.ts",
-    `import {utf8,sumU32,sumU32x4} from '../assembly/index';export function validate(p:usize,n:u32):bool{return utf8(p,n);}export function sum(p:usize,n:u32):u64{return sumU32(p,n);}export function four(p:usize):u64{return sumU32x4(p);}`,
+    `import {utf8,sumU32Unchecked,sumU32x4Unchecked} from '../assembly/index';export function validate(p:usize,n:u32):bool{return utf8(p,n);}export function sum(p:usize,n:u32):u64{return sumU32Unchecked(p,n);}export function four(p:usize):u64{return sumU32x4Unchecked(p);}`,
   );
   const modules = [];
   for (const feature of ["disable", "enable"]) {

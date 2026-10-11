@@ -54,4 +54,36 @@ test("packed npm artifact exposes CLI, TypeScript and AssemblyScript without rep
     { cwd: dir },
   );
   assert.ok(existsSync(join(dir, "consumer.wasm")));
+  writeFileSync(join(dir, "root.fass"), "message Root {1 x:u32=7}");
+  const cli = join(dir, "node_modules/.bin/fass");
+  execFileSync(cli, ["compile", "root.fass", "-o", "root.fsc"], { cwd: dir });
+  execFileSync(
+    cli,
+    [
+      "generate",
+      "root.fsc",
+      "-o",
+      "generated.ts",
+      "--target",
+      "assemblyscript",
+    ],
+    { cwd: dir },
+  );
+  writeFileSync(
+    join(dir, "generated-consumer.ts"),
+    "import {RootView} from './generated'; const root=new RootView(); export function read(p:usize,n:u32):u32{if(root.open(p,n)!=0)return 0;return root.getX();}",
+  );
+  execFileSync(
+    process.execPath,
+    [
+      resolve("node_modules/assemblyscript/bin/asc.js"),
+      "generated-consumer.ts",
+      "--outFile",
+      "generated-consumer.wasm",
+      "--runtime",
+      "stub",
+    ],
+    { cwd: dir },
+  );
+  assert.ok(existsSync(join(dir, "generated-consumer.wasm")));
 });

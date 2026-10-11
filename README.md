@@ -92,8 +92,8 @@ fass migrate old.fsc new.fsc old.bin -o new.bin
 
 `compile --strip` emits the numeric-only runtime core. Stripped schemas support
 borrowed slot/ID access and message verification; native-object construction,
-reflection, decoding and migration require the full schema. Generated modules
-embed the compiler's exact schema and layout/slot constants. They do not repeat
+reflection, decoding, migration and code generation require the full schema. Generated modules
+embed the compiler's exact schema and typed accessors. They do not repeat
 the packing algorithm.
 
 JSON maps use `[[key, value], ...]`. Encode large integer values as decimal
@@ -161,6 +161,44 @@ literal graph; `materializeDefault()` explicitly creates native values.
 `FassError` carries numeric `code`, `region`, `offset`, and `detail`. Absent,
 NotFound, invalid input, type mismatch, capacity exhaustion, scratch exhaustion,
 work limits and read-only access are distinct.
+
+## Generated access
+
+`fass generate` now emits typed accessors for both languages. Generated root
+views check the root head once; scalar getters use compiled offsets, while
+strings, arrays and references check the selected descriptor and payload
+bounds. Inline child views preserve the parent anchor. Keep schema and backing
+storage alive and structurally stable while retaining any borrowed view.
+
+TypeScript output includes `RootView`, numbered layout/array classes, named
+standalone record aliases, and `Encoder`. `Encoder.measure`, `encodeInto` and
+`encode` specialize construction from the compiled image, with defaults and
+constraints applied during preflight. Invalid input or insufficient destination
+capacity leaves output unchanged. Input must remain stable across the two
+passes. Extra native properties are ignored; maps use the generic encoder.
+
+AssemblyScript output uses reusable pointer views and numeric statuses.
+Check each `Into` return code and scalar getter's `status`; reopen or rebind
+a view after an error. Array classes expose direct scalar getters and `sum`
+for u32 vectors. Record arrays expose `sumU32Fields(index)` for required
+immediate u32 fields. Reductions use SIMD when compiled with `--enable simd`,
+with widened u64 accumulation and scalar fallbacks otherwise. `atPointer` and
+static accessors are an explicit lower-level route for established head
+extents; `Unchecked` functions require the caller to maintain that extent and
+exact generated layout. Packed byte-span results carry address in the low
+word and length in the high word; static span errors use high word
+`0xffffffff` with a numeric Code in the low word.
+
+For dynamic TypeScript schemas, `U32Path` uses four caller words per step and
+binds inline paths without reading schema tables again. Reopening a Schema
+invalidates its paths. `U32ArrayView` and `RecordArrayU32View` establish array
+metadata once and retain index/presence checks. Generated modules and resolved
+plans require immutable schema metadata.
+
+[Benchmark methods and raw reports](bench/README.md) cover TypeScript and
+AssemblyScript versus native C/C++/Rust implementations. Performance claims
+are tied to the measured workload and API path; the native 2× FlatBuffers gate
+is not assumed to pass.
 
 ## Caller-owned construction and mutation
 

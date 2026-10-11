@@ -227,6 +227,10 @@ test("generated AssemblyScript accessors compile for every composition and retai
   export function readText():i32{return r5.getTextBytesInto(span);}
   export function textCount():u32{return span.count;}
   export function readF():u32{return r0.getF();}
+  export function readFlag():bool{return r0.getFlag();}
+  export function setFlag(n:bool):i32{return r0.setFlag(n);}
+  export function readJ():f64{return r0.getJ();}
+  export function setJ(n:f64):i32{return r0.setJ(n);}
   export function setA(value:i8):i32{return r0.setA(value);}
   export function readA():i8{return r0.getA();}
   export function setN(value:i16):i32{return r0.setN(value);}
@@ -272,6 +276,12 @@ test("generated AssemblyScript accessors compile for every composition and retai
       assert.equal(w[`o${i}`](put(b), b.length), Code.Ok);
     }
     assert.equal(w.readF() >>> 0, 4294967295);
+    assert.equal(w.readFlag(), 1);
+    assert.equal(w.setFlag(0), Code.Ok);
+    assert.equal(w.readFlag(), 0);
+    assert.equal(w.readJ(), Infinity);
+    assert.equal(w.setJ(-1.25), Code.Ok);
+    assert.equal(w.readJ(), -1.25);
     assert.equal(w.setA(-127), Code.Ok);
     assert.equal(w.readA(), -127);
     assert.equal(w.setI(1.5), Code.Ok);
