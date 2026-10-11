@@ -20,7 +20,8 @@
     "assembly/index.ts",
     "README.md",
     "spec",
-    "examples"
+    "examples",
+    "THIRD_PARTY_NOTICES"
   ],
   "scripts": {
     "build": "tsc",

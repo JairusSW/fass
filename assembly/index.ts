@@ -88,6 +88,44 @@ export function writeWord(address: usize, width: u32, n: u64): void {
   for (let i: u32 = 0; i < width; i++)
     store<u8>(address + i, <u8>(n >> (i * 8)));
 }
+/** Sum four unaligned u32 values without overflowing 32-bit lanes. */
+@inline export function sumU32x4(pointer: usize): u64 {
+  if (ASC_FEATURE_SIMD) {
+    const value = v128.load(pointer);
+    const pair = i64x2.add(
+      i64x2.extend_low_i32x4_u(value),
+      i64x2.extend_high_i32x4_u(value),
+    );
+    return <u64>i64x2.extract_lane(pair, 0) + <u64>i64x2.extract_lane(pair, 1);
+  }
+  return (
+    <u64>load<u32>(pointer) +
+    load<u32>(pointer + 4) +
+    load<u32>(pointer + 8) +
+    load<u32>(pointer + 12)
+  );
+}
+/** Bounded borrowed-vector reduction. No allocation, safe tail, exact u64 accumulation. */
+export function sumU32(pointer: usize, count: u32): u64 {
+  let i: u32 = 0,
+    total: u64 = 0;
+  if (ASC_FEATURE_SIMD) {
+    let acc = i64x2.splat(0);
+    for (; count - i >= 4; i += 4) {
+      const value = v128.load(pointer + i * 4);
+      acc = i64x2.add(
+        acc,
+        i64x2.add(
+          i64x2.extend_low_i32x4_u(value),
+          i64x2.extend_high_i32x4_u(value),
+        ),
+      );
+    }
+    total = <u64>i64x2.extract_lane(acc, 0) + <u64>i64x2.extract_lane(acc, 1);
+  } else for (; count - i >= 4; i += 4) total += sumU32x4(pointer + i * 4);
+  for (; i < count; i++) total += load<u32>(pointer + i * 4);
+  return total;
+}
 const P1: u64 = 11400714785074694791,
   P2: u64 = 14029467366897019727,
   P3: u64 = 1609587929392839161,
@@ -889,8 +927,55 @@ export class ValueView {
 }
 /** Strict UTF-8, including overlong sequences, surrogate codepoints and >U+10FFFF. */
 export function utf8(pointer: usize, length: u32): bool {
+  if (!addressable(pointer, length)) return false;
   let i: u32 = 0;
   while (i < length) {
+    if (ASC_FEATURE_SIMD) {
+      while (length - i >= 64) {
+        const p = pointer + i;
+        const any = v128.or(
+          v128.or(v128.load(p), v128.load(p + 16)),
+          v128.or(v128.load(p + 32), v128.load(p + 48)),
+        );
+        if (i8x16.bitmask(any)) break;
+        i += 64;
+      }
+      while (length - i >= 16 && i8x16.bitmask(v128.load(pointer + i)) == 0)
+        i += 16;
+    }
+    // Adapted from utf-as ed2a0b2 validate_swar.ts (MIT; see THIRD_PARTY_NOTICES).
+    while (length - i >= 32) {
+      const p = pointer + i;
+      if (
+        (load<u64>(p) |
+          load<u64>(p + 8) |
+          load<u64>(p + 16) |
+          load<u64>(p + 24)) &
+        0x8080808080808080
+      )
+        break;
+      i += 32;
+    }
+    // SWAR also handles the scalar build and the 8-byte SIMD tail.
+    while (
+      length - i >= 8 &&
+      (load<u64>(pointer + i) & 0x8080808080808080) == 0
+    )
+      i += 8;
+    if (i == length) break;
+    if (length - i >= 8) {
+      const word = load<u64>(pointer + i),
+        high = word & 0x8080808080808080;
+      // Four C2..DF / 80..BF pairs. Detect C0/C1 independently in each lead lane.
+      if ((word & 0xc0e0c0e0c0e0c0e0) == 0x80c080c080c080c0) {
+        const leads = word & 0x001e001e001e001e;
+        if (((leads - 0x0001000100010001) & ~leads & 0x0080008000800080) != 0)
+          return false;
+        i += 8;
+        continue;
+      }
+      if (high) i += <u32>(ctz<u64>(high) >> 3);
+    }
     const a = load<u8>(pointer + i++);
     if (a < 128) continue;
     let n: u32, cp: u32, min: u32;

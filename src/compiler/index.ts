@@ -860,3 +860,5 @@ function comparePath(a: number[], b: number[]): number {
   return a.length - b.length;
 }
 export { generateTypescript } from "./codegen.js";
+
+export { generateAssemblyscript } from "./assembly-codegen.js";

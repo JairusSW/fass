@@ -202,3 +202,94 @@ test("generated views and encoders agree with the reference implementation", asy
     rmSync(dir, { recursive: true, force: true });
   }
 });
+test("generated AssemblyScript accessors compile for every composition and retain selected checks", async () => {
+  const { generateAssemblyscript } = await import("../dist/compiler/index.js");
+  const { readFileSync } = await import("node:fs");
+  const dir = mkdtempSync(resolve(".test-build/as-codegen-"));
+  try {
+    for (const [name, source] of cases)
+      writeFileSync(
+        `${dir}/${name}.ts`,
+        generateAssemblyscript(compile(source).schema).replace(
+          "from 'fass/assembly'",
+          "from '../../assembly/index'",
+        ),
+      );
+    const imports = cases.map(
+      ([name], i) =>
+        `import {RootView as R${i}} from './${name}'; const r${i}=new R${i}(); export function o${i}(p:usize,n:u32):i32{return r${i}.open(p,n,true);}`,
+    );
+    writeFileSync(
+      `${dir}/main.ts`,
+      imports.join("\n") +
+        `
+  import {Span} from './string24';const span=new Span();
+  export function readText():i32{return r5.getTextBytesInto(span);}
+  export function textCount():u32{return span.count;}
+  export function readF():u32{return r0.getF();}
+  export function setA(value:i8):i32{return r0.setA(value);}
+  export function readA():i8{return r0.getA();}
+  export function setN(value:i16):i32{return r0.setN(value);}
+  export function setI(value:f32):i32{return r0.setI(value);}
+  export function readI():f32{return r0.getI();}
+  export function readAbsent():u8{return r2.getAbsent();}
+  export function defaultStatus():i32{return r2.status;}
+  `,
+    );
+    execFileSync(
+      process.execPath,
+      [
+        "node_modules/assemblyscript/bin/asc.js",
+        `${dir}/main.ts`,
+        "--outFile",
+        `${dir}/test.wasm`,
+        "--exportRuntime",
+        "--runtime",
+        "stub",
+        "--optimize",
+      ],
+      { stdio: "inherit" },
+    );
+    const { instance } = await WebAssembly.instantiate(
+        readFileSync(`${dir}/test.wasm`),
+        {
+          env: {
+            abort() {
+              throw Error("AS abort");
+            },
+          },
+        },
+      ),
+      w = instance.exports;
+    const put = (b) => {
+      const p = w.__new(b.length, 0);
+      new Uint8Array(w.memory.buffer, p, b.length).set(b);
+      return p;
+    };
+    for (let i = 0; i < cases.length; i++) {
+      const s = openSchema(compile(cases[i][1]).schema),
+        b = encode(s, cases[i][2][0]);
+      assert.equal(w[`o${i}`](put(b), b.length), Code.Ok);
+    }
+    assert.equal(w.readF() >>> 0, 4294967295);
+    assert.equal(w.setA(-127), Code.Ok);
+    assert.equal(w.readA(), -127);
+    assert.equal(w.setI(1.5), Code.Ok);
+    assert.equal(w.readI(), 1.5);
+    assert.equal(w.setN(101), Code.BoundExceeded);
+    assert.equal(w.readAbsent(), 0);
+    assert.equal(w.defaultStatus(), Code.Absent);
+    assert.equal(w.readText(), Code.Ok);
+    assert.equal(w.textCount(), 5);
+    const s = openSchema(compile(cases[5][1]).schema),
+      b = encode(s, cases[5][2][0]),
+      d = open(b, s),
+      v = d.root().field("text");
+    d.dv.setUint32(v.offset, 0xff000000, true);
+    assert.equal(w.o5(put(b), b.length), Code.Ok);
+    assert.equal(w.readText(), Code.Malformed);
+    assert.equal(w.o5(put(b), 0), Code.Malformed);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

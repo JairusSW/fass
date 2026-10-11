@@ -4,3 +4,5 @@ dist/
 *.log
 
 .bench-build/
+
+bench/native/rust/target/
